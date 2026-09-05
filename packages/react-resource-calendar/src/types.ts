@@ -161,16 +161,6 @@ export interface ResourceCalendarProps<
   resources: GridResource<TMeta>[];
 
   /**
-   * Currently active/selected resource ID (optional)
-   */
-  activeResourceId?: string | null;
-
-  /**
-   * Callback when a resource header is selected/clicked
-   */
-  onSelectResourceTab?: (resourceId: string) => void;
-
-  /**
    * Callback when a resource header column is clicked.
    * Can be used to open dropdown menus, resource details, or deletion modals.
    */
@@ -211,11 +201,6 @@ export interface ResourceCalendarProps<
    * Callback when a scheduled event card is clicked or activated with keyboard
    */
   onEventClick?: (event: GridEvent<TData>, mouseEvent: React.MouseEvent | React.KeyboardEvent) => void;
-
-  /**
-   * Callback when a resource header is clicked
-   */
-  onResourceClick?: (resource: GridResource<TMeta>) => void;
 
   /**
    * Optional custom event renderer for all events in the grid
