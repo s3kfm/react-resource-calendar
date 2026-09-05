@@ -6,78 +6,35 @@ export interface SectionEventLayoutItem<TData = Record<string, unknown>> {
   segmentKey: string;
 }
 
-/**
- * Normalizes start and end times for an event
- */
-export function getEventTimeInfo<TData = any>(event: GridEvent<TData>, baseStartHour: number = 8) {
-  let startTimeStr = event.startTime;
-  let endTimeStr = event.endTime;
-  let dateStr = event.date;
+/** Formats a timestamp as local HH:mm for event labels. */
+export function formatEventTime(value: Date | string): string {
+  const date = new Date(value);
+  return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+}
 
-  // If startsAt / endsAt are Date objects
-  if (event.startsAt instanceof Date) {
-    const d = event.startsAt;
-    const y = d.getFullYear();
-    const m = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
-    dateStr = `${y}-${m}-${day}`;
-    startTimeStr = `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
-  }
-
-  if (event.endsAt instanceof Date) {
-    const d = event.endsAt;
-    endTimeStr = `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
-  }
-
+/** Derives display information from the event's two timestamps. */
+export function getEventTimeInfo<TData = unknown>(event: GridEvent<TData>) {
+  const { startMs, endMs } = getEventAbsoluteTimestamps(event);
   return {
-    dateStr: dateStr || '',
-    startTimeStr: startTimeStr || '08:00',
-    endTimeStr: endTimeStr || '09:00',
+    dateStr: formatDateToYYYYMMDD(new Date(startMs)),
+    startTimeStr: formatEventTime(new Date(startMs)),
+    endTimeStr: formatEventTime(new Date(endMs)),
   };
 }
 
-/**
- * Converts an event into absolute millisecond timestamps for precise timeline placement
- */
-export function getEventAbsoluteTimestamps<TData = any>(event: GridEvent<TData>, fallbackDateStr: string = ''): { startMs: number; endMs: number; dateStr: string } {
-  let startDate: Date;
-  let endDate: Date;
-
-  if (event.startsAt instanceof Date) {
-    startDate = new Date(event.startsAt.getTime());
-  } else if (typeof event.startsAt === 'string' && event.startsAt.includes('T')) {
-    startDate = new Date(event.startsAt);
-  } else {
-    const dStr = event.date || fallbackDateStr || '2023-10-23';
-    const tStr = event.startTime || '08:00';
-    const [y, m, d] = dStr.split('-').map(Number);
-    const [hh, mm] = tStr.split(':').map(Number);
-    startDate = new Date(y, (m || 1) - 1, d || 1, hh || 0, mm || 0, 0, 0);
-  }
-
-  if (event.endsAt instanceof Date) {
-    endDate = new Date(event.endsAt.getTime());
-  } else if (typeof event.endsAt === 'string' && event.endsAt.includes('T')) {
-    endDate = new Date(event.endsAt);
-  } else {
-    const dStr = event.endDate || event.date || fallbackDateStr || '2023-10-23';
-    const tStr = event.endTime || '09:00';
-    const [y, m, d] = dStr.split('-').map(Number);
-    const [hh, mm] = tStr.split(':').map(Number);
-    endDate = new Date(y, (m || 1) - 1, d || 1, hh || 0, mm || 0, 0, 0);
-
-    // If endTime <= startTime and no explicit endDate was passed, it's an overnight event into next day
-    if (endDate.getTime() <= startDate.getTime() && !event.endDate) {
-      endDate.setDate(endDate.getDate() + 1);
-    }
-  }
-
-  const dateStr = formatDateToYYYYMMDD(startDate);
-  return {
-    startMs: startDate.getTime(),
-    endMs: endDate.getTime(),
-    dateStr,
+/** Resolves explicit timestamps; missing/invalid/reversed ranges are rejected. */
+export function getEventAbsoluteTimestamps<TData = unknown>(event: GridEvent<TData>): { startMs: number; endMs: number; dateStr: string } {
+  const parse = (value: Date | string): number => {
+    if (value instanceof Date) return value.getTime();
+    if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(value)) return new Date(value).getTime();
+    return NaN;
   };
+  const startMs = parse(event.startsAt);
+  const endMs = parse(event.endsAt);
+  if (!Number.isFinite(startMs) || !Number.isFinite(endMs) || endMs <= startMs) {
+    throw new RangeError(`Event "${event.id}" requires valid startsAt and endsAt timestamps with endsAt after startsAt.`);
+  }
+  return { startMs, endMs, dateStr: formatDateToYYYYMMDD(new Date(startMs)) };
 }
 
 /**
@@ -382,75 +339,11 @@ export function computeGridColumnLayout<TData = any>(
   endHour: number = 24,
   pxPerMinute: number = 0.8
 ) {
-  // Filter events belonging to this date and resource
-  const matchingEvents = events.filter((e) => {
-    const info = getEventTimeInfo(e, startHour);
-    return info.dateStr === targetDateStr && e.resourceId === resourceId;
-  });
-
-  // Sort matching events by start time, then duration
-  const sorted = [...matchingEvents].sort((a, b) => {
-    const infoA = getEventTimeInfo(a, startHour);
-    const infoB = getEventTimeInfo(b, startHour);
-    const startA = timeToMinutesFromStart(infoA.startTimeStr, startHour);
-    const startB = timeToMinutesFromStart(infoB.startTimeStr, startHour);
-    if (startA !== startB) return startA - startB;
-    const durA = timeToMinutesFromStart(infoA.endTimeStr, startHour) - startA;
-    const durB = timeToMinutesFromStart(infoB.endTimeStr, startHour) - startB;
-    return durB - durA;
-  });
-
-  const maxMinutes = (endHour - startHour) * 60;
-
-  return sorted.map((event, idx) => {
-    const info = getEventTimeInfo(event, startHour);
-    const startMin = timeToMinutesFromStart(info.startTimeStr, startHour);
-    const endMin = timeToMinutesFromStart(info.endTimeStr, startHour);
-    const effectiveEndMin = Math.min(endMin, maxMinutes);
-
-    const topPx = Math.max(0, startMin * pxPerMinute);
-    const heightPx = Math.max(20, (effectiveEndMin - startMin) * pxPerMinute);
-
-    const extendsBeyondEnd = endMin > maxMinutes;
-    const overflowMinutes = extendsBeyondEnd ? endMin - maxMinutes : 0;
-    const overflowHours = overflowMinutes > 0 ? Math.round((overflowMinutes / 60) * 10) / 10 : 0;
-    const overflowText = overflowMinutes > 0 ? formatOverflowDuration(overflowMinutes) : undefined;
-
-    // Overlap detection
-    const overlapping = sorted.filter((other, oIdx) => {
-      if (oIdx === idx) return false;
-      const otherInfo = getEventTimeInfo(other, startHour);
-      const otherStart = timeToMinutesFromStart(otherInfo.startTimeStr, startHour);
-      const otherEnd = timeToMinutesFromStart(otherInfo.endTimeStr, startHour);
-      return Math.max(startMin, otherStart) < Math.min(endMin, otherEnd);
-    });
-
-    const hasConflict = event.hasConflict ?? (overlapping.length > 0);
-    let conflictOverlapSide: 'left' | 'right' | 'full' = 'full';
-
-    if (overlapping.length > 0) {
-      const isLaterInList = overlapping.some((other) => {
-        const oInfo = getEventTimeInfo(other, startHour);
-        const oStart = timeToMinutesFromStart(oInfo.startTimeStr, startHour);
-        return oStart < startMin || (oStart === startMin && other.id < event.id);
-      });
-      conflictOverlapSide = isLaterInList ? 'right' : 'left';
-    }
-
-    return {
-      event,
-      layout: {
-        topPx,
-        heightPx,
-        hasConflict,
-        conflictOverlapSide,
-        extendsBeyondEnd,
-        overflowMinutes,
-        overflowHours,
-        overflowText,
-      },
-    };
-  });
+  const start = new Date(`${targetDateStr}T00:00:00`);
+  start.setHours(startHour);
+  const end = new Date(`${targetDateStr}T00:00:00`);
+  end.setHours(endHour);
+  return computeGridContinuousColumnLayout(events, resourceId, start, end, pxPerMinute);
 }
 
 /**
@@ -658,12 +551,16 @@ export function computeGridDiscreteSectionLayout<TData = any, TMeta = any>(
   resourceColumnWidth: number = 240,
   pxPerMinute: number = 0.8
 ): SectionEventLayoutItem<TData>[] {
-  const maxMinutes = (endHour - startHour) * 60;
+  const sectionStart = new Date(`${dateStr}T00:00:00`);
+  sectionStart.setHours(startHour);
+  const sectionEnd = new Date(`${dateStr}T00:00:00`);
+  sectionEnd.setHours(endHour);
+  const maxMinutes = (sectionEnd.getTime() - sectionStart.getTime()) / 60000;
 
   // Normalize and filter events that match this date and at least one resource
   const eventEntries = events
     .map((e) => {
-      const info = getEventTimeInfo(e, startHour);
+      const { startMs, endMs } = getEventAbsoluteTimestamps(e);
       const requestedResourceIds: string[] =
         e.resourceIds && e.resourceIds.length > 0
           ? e.resourceIds
@@ -685,20 +582,19 @@ export function computeGridDiscreteSectionLayout<TData = any, TMeta = any>(
 
       matchedColumns.sort((a, b) => a.colIdx - b.colIdx);
 
-      const startMin = timeToMinutesFromStart(info.startTimeStr, startHour);
-      const endMin = timeToMinutesFromStart(info.endTimeStr, startHour);
+      const startMin = (startMs - sectionStart.getTime()) / 60000;
+      const endMin = (endMs - sectionStart.getTime()) / 60000;
 
       return {
         event: e,
-        info,
         startMin,
         endMin,
         matchedColumns,
         resourceIds: requestedResourceIds,
       };
     })
-    .filter(({ info, matchedColumns }) => {
-      return matchedColumns.length > 0 && info.dateStr === dateStr;
+    .filter(({ startMin, endMin, matchedColumns }) => {
+      return matchedColumns.length > 0 && startMin < maxMinutes && endMin > 0;
     });
 
   // Sort by start time, then duration
@@ -714,7 +610,7 @@ export function computeGridDiscreteSectionLayout<TData = any, TMeta = any>(
   eventEntries.forEach(({ event, startMin, endMin, matchedColumns, resourceIds }, eIdx) => {
     const effectiveEndMin = Math.min(endMin, maxMinutes);
     const topPx = Math.max(0, startMin * pxPerMinute);
-    const heightPx = Math.max(20, (effectiveEndMin - startMin) * pxPerMinute);
+    const heightPx = Math.max(20, (effectiveEndMin - Math.max(0, startMin)) * pxPerMinute);
 
     const extendsBeyondEnd = endMin > maxMinutes;
     const overflowMinutes = extendsBeyondEnd ? endMin - maxMinutes : 0;

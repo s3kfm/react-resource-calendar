@@ -26,7 +26,8 @@
     "build": "vite build",
     "typecheck": "tsc --noEmit",
     "clean": "rimraf dist",
-    "prepack": "pnpm build"
+    "prepack": "pnpm build",
+    "test": "pnpm build && node --test tests/*.test.mjs"
   },
   "keywords": [
     "react",

@@ -78,10 +78,8 @@ export default function App() {
       title: evt.title,
       resourceId: evt.resourceId,
       resourceIds: evt.resourceIds,
-      date: evt.date,
-      endDate: evt.endDate,
-      startTime: evt.startTime,
-      endTime: evt.endTime,
+      startsAt: evt.startsAt,
+      endsAt: evt.endsAt,
       subTitle: evt.patient || evt.practitioner,
       colorTheme: evt.colorTheme,
       notes: evt.notes,
@@ -94,10 +92,9 @@ export default function App() {
   // Grid Event Handlers
   const handleGridClick = (info: GridSlotClickInfo) => {
     setEditingEvent({
-      date: info.dateStr,
       resourceId: info.resourceId,
-      startTime: info.time,
-      endTime: getNextHour(info.time),
+      startsAt: new Date(`${info.dateStr}T${info.time}:00`).toISOString(),
+      endsAt: new Date(new Date(`${info.dateStr}T${info.time}:00`).getTime() + 3600000).toISOString(),
     });
     setIsEventModalOpen(true);
   };
@@ -137,11 +134,11 @@ export default function App() {
     setEvents((prev) => prev.filter((e) => e.id !== eventId));
   };
 
-  const handleResolveByShiftTime = (eventId: string, newStartTime: string, newEndTime: string) => {
+  const handleResolveByShiftTime = (eventId: string, startsAt: string, endsAt: string) => {
     setEvents((prev) =>
       prev.map((e) =>
         e.id === eventId
-          ? { ...e, startTime: newStartTime, endTime: newEndTime, status: 'confirmed' }
+          ? { ...e, startsAt, endsAt, status: 'confirmed' }
           : e
       )
     );
@@ -267,11 +264,4 @@ export default function App() {
       />
     </div>
   );
-}
-
-function getNextHour(timeStr: string): string {
-  const [h, m] = timeStr.split(':').map(Number);
-  const nextH = Math.min(24, h + 1);
-  if (nextH === 24) return '24:00';
-  return `${String(nextH).padStart(2, '0')}:${String(m || 0).padStart(2, '0')}`;
 }

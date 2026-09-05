@@ -37,9 +37,8 @@ const events: GridEvent[] = [
     id: 'booking-1',
     title: 'Product shoot',
     resourceId: 'room-a',
-    date: '2026-09-04',
-    startTime: '09:00',
-    endTime: '10:30',
+    startsAt: '2026-09-04T09:00:00',
+    endsAt: '2026-09-04T10:30:00',
     subTitle: 'Northwind Studio',
     status: 'confirmed',
     colorTheme: 'blue',
@@ -104,15 +103,15 @@ An event requires `id` and `title`, plus one or more resources and a time range.
 }
 ```
 
-Or separate local date and time fields:
+Both `startsAt` and `endsAt` are required and accept `Date` objects or ISO date-time
+strings. Times are displayed in the browser's local timezone. Include an offset
+(e.g. `-04:00` or `Z`) to identify a specific instant, or omit it for local time.
+`endsAt` must be later than `startsAt`. Missing, invalid, or reversed ranges throw
+`RangeError`; the calendar does not invent fallback dates or infer overnight ends.
+For overnight events, explicitly put the following date in `endsAt`.
 
-```ts
-{
-  date: '2026-09-04',
-  startTime: '09:00',
-  endTime: '10:30'
-}
-```
+**Migration:** `date`, `endDate`, `startTime`, and `endTime` were removed from
+`GridEvent`. Combine each date and time into its corresponding timestamp.
 
 Assign one resource with `resourceId`, or span several resources with `resourceIds`:
 
@@ -121,9 +120,8 @@ const multiRoomEvent: GridEvent = {
   id: 'booking-2',
   title: 'Company workshop',
   resourceIds: ['room-a', 'room-b'],
-  date: '2026-09-04',
-  startTime: '13:00',
-  endTime: '15:00',
+  startsAt: '2026-09-04T13:00:00',
+  endsAt: '2026-09-04T15:00:00',
 };
 ```
 

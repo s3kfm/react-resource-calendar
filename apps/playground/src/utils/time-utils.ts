@@ -1,4 +1,4 @@
-import { ConflictItem, LayoutEvent, Resource, ScheduledEvent } from '../types';
+import { ConflictItem, Resource, ScheduledEvent } from '../types';
 
 export const TIMELINE_START_HOUR = 8; // 08:00
 export const TIMELINE_END_HOUR = 24; // 24:00 (00:00 midnight)
@@ -51,13 +51,12 @@ export function minutesToTimeString(minutesFromStart: number): string {
  * Checks if two events overlap in time
  */
 export function doEventsOverlap(a: ScheduledEvent, b: ScheduledEvent): boolean {
-  if (a.date !== b.date) return false;
   if (a.id === b.id) return false;
   
-  const startA = timeStringToMinutes(a.startTime);
-  const endA = timeStringToMinutes(a.endTime);
-  const startB = timeStringToMinutes(b.startTime);
-  const endB = timeStringToMinutes(b.endTime);
+  const startA = new Date(a.startsAt).getTime();
+  const endA = new Date(a.endsAt).getTime();
+  const startB = new Date(b.startsAt).getTime();
+  const endB = new Date(b.endsAt).getTime();
 
   return Math.max(startA, startB) < Math.min(endA, endB);
 }
@@ -72,11 +71,11 @@ export function detectAllConflicts(
   const conflicts: ConflictItem[] = [];
   const resourceMap = new Map(resources.map((r) => [r.id, r.name]));
 
-  // Group events by date and resource
+  // Group by resource so overnight overlaps are included.
   const dateResourceGroups = new Map<string, ScheduledEvent[]>();
 
   events.forEach((evt) => {
-    const key = `${evt.date}_${evt.resourceId}`;
+    const key = evt.resourceId;
     if (!dateResourceGroups.has(key)) {
       dateResourceGroups.set(key, []);
     }
@@ -84,7 +83,7 @@ export function detectAllConflicts(
   });
 
   dateResourceGroups.forEach((groupEvents, key) => {
-    const [date, resourceId] = key.split('_');
+    const resourceId = key;
     const resourceName = resourceMap.get(resourceId) || resourceId;
 
     for (let i = 0; i < groupEvents.length; i++) {
@@ -93,24 +92,24 @@ export function detectAllConflicts(
         const evB = groupEvents[j];
 
         if (doEventsOverlap(evA, evB)) {
-          const startA = timeStringToMinutes(evA.startTime);
-          const endA = timeStringToMinutes(evA.endTime);
-          const startB = timeStringToMinutes(evB.startTime);
-          const endB = timeStringToMinutes(evB.endTime);
+          const startA = new Date(evA.startsAt).getTime();
+          const endA = new Date(evA.endsAt).getTime();
+          const startB = new Date(evB.startsAt).getTime();
+          const endB = new Date(evB.endsAt).getTime();
 
           const overlapStart = Math.max(startA, startB);
           const overlapEnd = Math.min(endA, endB);
-          const overlapDurationMinutes = overlapEnd - overlapStart;
+          const overlapDurationMinutes = (overlapEnd - overlapStart) / 60000;
 
           conflicts.push({
             id: `conflict_${evA.id}_${evB.id}`,
-            date,
+            date: toDateTimeInput(new Date(overlapStart).toISOString()).slice(0, 10),
             resourceId,
             resourceName,
             eventA: evA,
             eventB: evB,
             overlapDurationMinutes,
-            message: `${resourceName}: "${evA.title}" (${evA.startTime}-${evA.endTime}) overlaps with "${evB.title}" (${evB.startTime}-${evB.endTime}) by ${overlapDurationMinutes}m`,
+            message: `${resourceName}: "${evA.title}" (${formatTime(evA.startsAt)}-${formatTime(evA.endsAt)}) overlaps with "${evB.title}" (${formatTime(evB.startsAt)}-${formatTime(evB.endsAt)}) by ${overlapDurationMinutes}m`,
           });
         }
       }
@@ -120,72 +119,20 @@ export function detectAllConflicts(
   return conflicts;
 }
 
-/**
- * Computes pixel geometry and conflict layout side offsets for events on a specific day/resource
- */
-export function computeLayoutEvents(
-  events: ScheduledEvent[],
-  date: string,
-  resourceId: string
-): LayoutEvent[] {
-  const dayResourceEvents = events.filter(
-    (e) => e.date === date && e.resourceId === resourceId
-  );
-
-  // Sort by start time, then duration
-  const sorted = [...dayResourceEvents].sort((a, b) => {
-    const startDiff = timeStringToMinutes(a.startTime) - timeStringToMinutes(b.startTime);
-    if (startDiff !== 0) return startDiff;
-    return (
-      timeStringToMinutes(b.endTime) -
-      timeStringToMinutes(b.startTime) -
-      (timeStringToMinutes(a.endTime) - timeStringToMinutes(a.startTime))
-    );
-  });
-
-  const layoutList: LayoutEvent[] = [];
-
-  for (let i = 0; i < sorted.length; i++) {
-    const current = sorted[i];
-    const startMin = timeStringToMinutes(current.startTime);
-    const endMin = timeStringToMinutes(current.endTime);
-    const topPx = Math.max(0, startMin * PX_PER_MINUTE);
-    const heightPx = Math.max(24, (endMin - startMin) * PX_PER_MINUTE);
-
-    // Check overlaps with other events in the same column
-    const overlapping = sorted.filter((other, idx) => idx !== i && doEventsOverlap(current, other));
-
-    let conflictOverlapSide: 'left' | 'right' | 'full' = 'full';
-    let hasConflict = false;
-    let conflictId: string | undefined;
-
-    if (overlapping.length > 0) {
-      hasConflict = true;
-      conflictId = `conflict_${current.id}`;
-      // Earlier event sits on left, subsequent overlapping sits on right
-      const earlier = overlapping.some(
-        (o) => timeStringToMinutes(o.startTime) < startMin || (timeStringToMinutes(o.startTime) === startMin && o.id < current.id)
-      );
-      conflictOverlapSide = earlier ? 'right' : 'left';
-    }
-
-    layoutList.push({
-      ...current,
-      topPx,
-      heightPx,
-      hasConflict,
-      conflictOverlapSide,
-      conflictId,
-    });
-  }
-
-  return layoutList;
-}
-
 export function formatDayHeader(dateStr: string): string {
   const [year, month, day] = dateStr.split('-').map(Number);
   const dateObj = new Date(year, month - 1, day);
   const weekday = dateObj.toLocaleDateString('en-US', { weekday: 'long' }).toUpperCase();
   const monthName = dateObj.toLocaleDateString('en-US', { month: 'short' }).toUpperCase();
   return `${weekday}, ${monthName} ${day}`;
+}
+
+export function toDateTimeInput(value: string): string {
+  const date = new Date(value);
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
+export function formatTime(value: string): string {
+  return toDateTimeInput(value).slice(11);
 }

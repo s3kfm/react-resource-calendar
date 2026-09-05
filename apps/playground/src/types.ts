@@ -16,10 +16,8 @@ export type EventCategory = 'surgery' | 'checkup' | 'consultation' | 'admin' | '
 export interface ScheduledEvent {
   id: string;
   title: string;
-  date: string; // YYYY-MM-DD format (e.g., '2023-10-23')
-  endDate?: string; // Optional YYYY-MM-DD for multi-day/overnight events
-  startTime: string; // HH:mm format (e.g., '08:30')
-  endTime: string; // HH:mm format (e.g., '10:30')
+  startsAt: string; // ISO timestamp
+  endsAt: string; // ISO timestamp
   resourceId: string; // Primary resource (e.g. 'rm-101')
   resourceIds?: string[]; // Optional array of multiple resources for multi-room events
   linkedResourceId?: string; // Optional linked resource (e.g. 'dr-smith' or 'rm-101')

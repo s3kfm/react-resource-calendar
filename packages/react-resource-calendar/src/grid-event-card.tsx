@@ -1,3 +1,4 @@
+import { formatEventTime } from './grid-utils';
 import React from 'react';
 import { AlertTriangle, Clock, ArrowLeft, ArrowRight, Layers } from 'lucide-react';
 import { GridEvent, GridEventLayout } from './types';
@@ -88,10 +89,7 @@ export const GridEventCard = <TData = Record<string, unknown>>({
 
   const isShortEvent = layout.heightPx <= 50;
   const isMicroEvent = layout.heightPx < 36;
-  const timeDisplay =
-    event.startTime && event.endTime
-      ? `${event.startTime} - ${event.endTime}`
-      : undefined;
+  const timeDisplay = `${formatEventTime(event.startsAt)} - ${formatEventTime(event.endsAt)}`;
 
   // Base rounding
   let roundedTopLeft = true;

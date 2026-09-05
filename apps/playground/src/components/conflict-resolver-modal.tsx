@@ -1,3 +1,4 @@
+import { formatTime } from '../utils/time-utils';
 import React from 'react';
 import { X, AlertTriangle, ArrowRight, CheckCircle2, Clock, MapPin, Sparkles } from 'lucide-react';
 import { ConflictItem, Resource, ScheduledEvent } from '../types';
@@ -7,7 +8,7 @@ interface ConflictResolverModalProps {
   onClose: () => void;
   conflicts: ConflictItem[];
   resources: Resource[];
-  onResolveByShiftTime: (eventId: string, newStartTime: string, newEndTime: string) => void;
+  onResolveByShiftTime: (eventId: string, startsAt: string, endsAt: string) => void;
   onResolveByReassignResource: (eventId: string, newResourceId: string) => void;
   onSelectEventToEdit: (event: ScheduledEvent) => void;
 }
@@ -96,7 +97,7 @@ export const ConflictResolverModal: React.FC<ConflictResolverModalProps> = ({
                       </div>
                       <div className="text-[11px] font-data-mono text-[#434655] mt-1 flex items-center gap-1">
                         <Clock className="w-3 h-3" />
-                        <span>{eventA.startTime} - {eventA.endTime}</span>
+                        <span>{formatTime(eventA.startsAt)} - {formatTime(eventA.endsAt)}</span>
                       </div>
                       {eventA.patient && (
                         <div className="text-[11px] text-[#737686] mt-0.5">
@@ -115,7 +116,7 @@ export const ConflictResolverModal: React.FC<ConflictResolverModalProps> = ({
                       </div>
                       <div className="text-[11px] font-data-mono text-[#434655] mt-1 flex items-center gap-1">
                         <Clock className="w-3 h-3" />
-                        <span>{eventB.startTime} - {eventB.endTime}</span>
+                        <span>{formatTime(eventB.startsAt)} - {formatTime(eventB.endsAt)}</span>
                       </div>
                       {eventB.patient && (
                         <div className="text-[11px] text-[#737686] mt-0.5">
@@ -136,20 +137,10 @@ export const ConflictResolverModal: React.FC<ConflictResolverModalProps> = ({
                       {/* Option 1: Shift Time */}
                       <button
                         onClick={() => {
-                          // Shift eventB to start at eventA's end time
-                          // Compute duration of eventB in minutes
-                          const [sH, sM] = eventB.startTime.split(':').map(Number);
-                          const [eH, eM] = eventB.endTime.split(':').map(Number);
-                          const durationMin = (eH * 60 + eM) - (sH * 60 + sM);
-
-                          const [endAH, endAM] = eventA.endTime.split(':').map(Number);
-                          const newStartTotal = endAH * 60 + endAM;
-                          const newEndTotal = newStartTotal + durationMin;
-
-                          const newStartTime = `${String(Math.floor(newStartTotal / 60)).padStart(2, '0')}:${String(newStartTotal % 60).padStart(2, '0')}`;
-                          const newEndTime = `${String(Math.floor(newEndTotal / 60)).padStart(2, '0')}:${String(newEndTotal % 60).padStart(2, '0')}`;
-
-                          onResolveByShiftTime(eventB.id, newStartTime, newEndTime);
+                          const duration = new Date(eventB.endsAt).getTime() - new Date(eventB.startsAt).getTime();
+                          const startsAt = eventA.endsAt;
+                          const endsAt = new Date(new Date(startsAt).getTime() + duration).toISOString();
+                          onResolveByShiftTime(eventB.id, startsAt, endsAt);
                         }}
                         className="flex flex-col text-left p-2 rounded bg-white hover:bg-[#dbe1ff]/30 border border-[#004ac6]/30 text-xs transition-colors group"
                       >
@@ -158,7 +149,7 @@ export const ConflictResolverModal: React.FC<ConflictResolverModalProps> = ({
                           <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
                         </span>
                         <span className="text-[11px] text-[#434655] mt-0.5">
-                          Move to start at {eventA.endTime} (immediately after {eventA.title})
+                          Move to start at {formatTime(eventA.endsAt)} (immediately after {eventA.title})
                         </span>
                       </button>
 

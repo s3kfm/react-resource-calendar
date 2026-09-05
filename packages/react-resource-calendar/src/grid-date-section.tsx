@@ -114,7 +114,7 @@ export const GridDateSection = <
   const dayEventsCount = useMemo(() => {
     if (!range || !dateStr) return 0;
     return events.filter((e) => {
-      const info = getEventTimeInfo(e, effectiveStartHour);
+      const info = getEventTimeInfo(e);
       return info.dateStr === dateStr;
     }).length;
   }, [range, dateStr, events, effectiveStartHour]);

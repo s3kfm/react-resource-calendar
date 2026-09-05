@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Clock, Calendar, AlertTriangle, Check, Trash2, User, MapPin } from 'lucide-react';
 import { EventCategory, Resource, ScheduledEvent } from '../types';
-import { doEventsOverlap } from '../utils/time-utils';
+import { doEventsOverlap, toDateTimeInput, formatTime } from '../utils/time-utils';
 
 interface EventModalProps {
   isOpen: boolean;
@@ -23,9 +23,8 @@ export const EventModal: React.FC<EventModalProps> = ({
   existingEvents,
 }) => {
   const [title, setTitle] = useState('');
-  const [date, setDate] = useState('2023-10-23');
-  const [startTime, setStartTime] = useState('09:00');
-  const [endTime, setEndTime] = useState('10:00');
+  const [startsAt, setStartsAt] = useState('2023-10-23T09:00');
+  const [endsAt, setEndsAt] = useState('2023-10-23T10:00');
   const [selectedResourceIds, setSelectedResourceIds] = useState<string[]>(['rm-101']);
   const [patient, setPatient] = useState('');
   const [type, setType] = useState<EventCategory>('checkup');
@@ -35,9 +34,8 @@ export const EventModal: React.FC<EventModalProps> = ({
   useEffect(() => {
     if (initialEvent) {
       setTitle(initialEvent.title || '');
-      setDate(initialEvent.date || '2023-10-23');
-      setStartTime(initialEvent.startTime || '09:00');
-      setEndTime(initialEvent.endTime || '10:00');
+      setStartsAt(initialEvent.startsAt ? toDateTimeInput(initialEvent.startsAt) : '2023-10-23T09:00');
+      setEndsAt(initialEvent.endsAt ? toDateTimeInput(initialEvent.endsAt) : '2023-10-23T10:00');
       const resList =
         initialEvent.resourceIds && initialEvent.resourceIds.length > 0
           ? initialEvent.resourceIds
@@ -51,9 +49,8 @@ export const EventModal: React.FC<EventModalProps> = ({
       setNotes(initialEvent.notes || '');
     } else {
       setTitle('');
-      setDate('2023-10-23');
-      setStartTime('09:00');
-      setEndTime('10:00');
+      setStartsAt('2023-10-23T09:00');
+      setEndsAt('2023-10-23T10:00');
       setSelectedResourceIds([resources[0]?.id || 'rm-101']);
       setPatient('');
       setType('checkup');
@@ -79,9 +76,8 @@ export const EventModal: React.FC<EventModalProps> = ({
   const simulatedEvent: ScheduledEvent = {
     id: initialEvent?.id || 'temp-id',
     title,
-    date,
-    startTime,
-    endTime,
+    startsAt,
+    endsAt,
     resourceId: primaryResourceId,
     resourceIds: selectedResourceIds.length > 1 ? selectedResourceIds : undefined,
     type,
@@ -100,12 +96,16 @@ export const EventModal: React.FC<EventModalProps> = ({
     e.preventDefault();
     if (!title.trim() || selectedResourceIds.length === 0) return;
 
+    if (!Number.isFinite(new Date(startsAt).getTime()) || !Number.isFinite(new Date(endsAt).getTime()) || new Date(endsAt) <= new Date(startsAt)) {
+      window.alert('End must be after start.');
+      return;
+    }
+
     const eventToSave: ScheduledEvent = {
       id: initialEvent?.id || `evt_${Date.now()}`,
       title: title.trim(),
-      date,
-      startTime,
-      endTime,
+      startsAt,
+      endsAt,
       resourceId: selectedResourceIds[0],
       resourceIds: selectedResourceIds.length > 1 ? selectedResourceIds : undefined,
       patient: patient.trim() || undefined,
@@ -141,7 +141,7 @@ export const EventModal: React.FC<EventModalProps> = ({
             <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
             <div className="text-xs">
               <span className="font-bold">Conflict Warning:</span> This slot overlaps with{' '}
-              {conflictingEvents.map((c) => `"${c.title}" (${c.startTime} - ${c.endTime})`).join(', ')}.
+              {conflictingEvents.map((c) => `"${c.title}" (${formatTime(c.startsAt)} - ${formatTime(c.endsAt)})`).join(', ')}.
             </div>
           </div>
         )}
@@ -216,43 +216,31 @@ export const EventModal: React.FC<EventModalProps> = ({
             </div>
           </div>
 
-          {/* Date, Start Time, End Time */}
-          <div className="grid grid-cols-3 gap-3">
+          {/* Event timestamps */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-semibold text-[#434655] mb-1">
-                Date
+                Starts at
               </label>
               <input
-                type="date"
-                required
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-                className="w-full px-2 py-1.5 text-xs bg-[#f7f9fb] border border-[#c3c6d7] rounded focus:outline-none focus:ring-2 focus:ring-[#004ac6] text-[#191c1e]"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-[#434655] mb-1">
-                Start Time
-              </label>
-              <input
-                type="time"
+                type="datetime-local"
                 step="900"
                 required
-                value={startTime}
-                onChange={(e) => setStartTime(e.target.value)}
+                value={startsAt}
+                onChange={(e) => setStartsAt(e.target.value)}
                 className="w-full px-2 py-1.5 text-xs bg-[#f7f9fb] border border-[#c3c6d7] rounded focus:outline-none focus:ring-2 focus:ring-[#004ac6] text-[#191c1e] font-data-mono"
               />
             </div>
             <div>
               <label className="block text-xs font-semibold text-[#434655] mb-1">
-                End Time
+                Ends at
               </label>
               <input
-                type="time"
+                type="datetime-local"
                 step="900"
                 required
-                value={endTime}
-                onChange={(e) => setEndTime(e.target.value)}
+                value={endsAt}
+                onChange={(e) => setEndsAt(e.target.value)}
                 className="w-full px-2 py-1.5 text-xs bg-[#f7f9fb] border border-[#c3c6d7] rounded focus:outline-none focus:ring-2 focus:ring-[#004ac6] text-[#191c1e] font-data-mono"
               />
             </div>

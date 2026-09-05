@@ -1,3 +1,4 @@
+import { formatTime } from '../utils/time-utils';
 import React, { useState, useEffect } from 'react';
 import {
   X,
@@ -287,7 +288,7 @@ export const ResourceManagementModal: React.FC<ResourceManagementModalProps> = (
                             {evt.title}
                           </span>
                           <span className="text-[10px] text-[#737686] shrink-0">
-                            {evt.startTime} - {evt.endTime}
+                            {formatTime(evt.startsAt)} - {formatTime(evt.endsAt)}
                           </span>
                         </div>
                       ))}

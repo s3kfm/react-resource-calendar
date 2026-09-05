@@ -1,6 +1,5 @@
 import React from 'react';
 
-
 /**
  * Resource item definition for the grid header and columns.
  * Supports a generic metadata type TMeta for type-safe domain attributes.
@@ -97,7 +96,6 @@ export interface GridEventLayout {
  * Event item rendered on the grid.
  * Supports a generic data payload TData for custom domain models.
  * Standard temporal fields: `startsAt` and `endsAt` (ISO 8601 string or Date object).
- * For convenience, also accepts `date`, `endDate`, `startTime`, `endTime`.
  */
 export interface GridEvent<TData = Record<string, unknown>> {
   id: string;
@@ -107,27 +105,11 @@ export interface GridEvent<TData = Record<string, unknown>> {
   /**
    * Primary start timestamp (Date object or ISO-8601 string)
    */
-  startsAt?: Date | string;
+  startsAt: Date | string;
   /**
    * Primary end timestamp (Date object or ISO-8601 string)
    */
-  endsAt?: Date | string;
-  /**
-   * Date string in YYYY-MM-DD format (used with startTime)
-   */
-  date?: string;
-  /**
-   * Optional end date string in YYYY-MM-DD format for multi-day events
-   */
-  endDate?: string;
-  /**
-   * Start time string in HH:mm format
-   */
-  startTime?: string;
-  /**
-   * End time string in HH:mm format
-   */
-  endTime?: string;
+  endsAt: Date | string;
   subTitle?: string;
   patient?: string;
   practitioner?: string;
