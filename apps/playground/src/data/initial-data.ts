@@ -95,18 +95,6 @@ export const INITIAL_EVENTS: ScheduledEvent[] = [
     status: 'pending',
   },
   {
-    id: 'evt-mon-4',
-    title: 'Consultation B',
-    startsAt: '2023-10-23T11:30:00',
-    endsAt: '2023-10-23T13:00:00',
-    resourceIds: ['rm-102'],
-    patient: 'Elena Rostova',
-    type: 'consultation',
-    colorTheme: 'amber',
-    notes: 'Double-booked emergency consult slot.',
-    status: 'pending',
-  },
-  {
     id: 'evt-mon-5',
     title: 'Appendectomy (Rm 101)',
     startsAt: '2023-10-23T08:30:00',
@@ -178,7 +166,7 @@ export const INITIAL_EVENTS: ScheduledEvent[] = [
     roomName: 'Room 101',
     type: 'consultation',
     colorTheme: 'teal',
-    notes: 'Non-contiguous multi-resource event: Room 101 has dashed right border; Dr. Smith has dashed left border.',
+    notes: 'Multi-resource event spanning Room 101 and Dr. Smith.',
     status: 'confirmed',
   },
   {
