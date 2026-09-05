@@ -218,14 +218,9 @@ export const GridEventCard = <TData = Record<string, unknown>>({
         {timeDisplay && !isMicroEvent && (
           <div
             style={{ color: 'var(--grid-text-secondary)' }}
-            className="font-mono text-[10px] truncate mt-0.5 flex items-center justify-between"
+            className="font-mono text-[10px] truncate mt-0.5"
           >
-            <span>{timeDisplay}</span>
-            {layout.isMultiResource && layout.totalSegments && layout.totalSegments > 1 && (
-              <span className="text-[9px] font-sans font-semibold uppercase tracking-wider opacity-75">
-                Part {((layout.segmentIndex ?? 0) + 1)} of {layout.totalSegments}
-              </span>
-            )}
+            {timeDisplay}
           </div>
         )}
 

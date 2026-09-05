@@ -1,9 +1,7 @@
 import React, { useMemo } from 'react';
 import { ContinuousDateGroup, GridDateRange, GridEvent, GridResource, GridSlotClickInfo, SubHourGradingStyle } from './types';
 import {
-  formatDateToYYYYMMDD,
   groupContinuousDateRanges,
-  getEventAbsoluteTimestamps,
   computeGridContinuousSectionLayout,
 } from './grid-utils';
 import { GridDateHeader } from './grid-date-header';
@@ -59,15 +57,6 @@ export const GridDateSection = <
   const group = useMemo(() => suppliedGroup ?? (range ? groupContinuousDateRanges([range], timeSlotHeight)[0] : undefined), [suppliedGroup, range, timeSlotHeight]);
 
   // Memoize continuous calculations if group is provided
-  const groupEventsCount = useMemo(() => {
-    if (!group) return 0;
-    const groupStartMs = group.start.getTime();
-    const groupEndMs = group.end.getTime();
-    return events.filter((e) => {
-      const timestamps = getEventAbsoluteTimestamps(e);
-      return timestamps.startMs < groupEndMs && timestamps.endMs > groupStartMs;
-    }).length;
-  }, [group, events]);
 
   const allRows = useMemo(() => {
     return group ? group.ranges.flatMap((r) => r.rows) : [];
@@ -108,7 +97,6 @@ export const GridDateSection = <
             <GridDateHeader
               range={firstRangeItem.range}
               dateStr={firstRangeItem.dateStr}
-              dayEventsCount={groupEventsCount}
               isFirstSection={isFirstSection}
             />
           </div>

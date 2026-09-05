@@ -6,14 +6,12 @@ import { formatDateRangeTitle } from './grid-utils';
 export interface GridDateHeaderProps {
   range: GridDateRange;
   dateStr: string;
-  dayEventsCount: number;
   isFirstSection?: boolean;
 }
 
 export const GridDateHeader: React.FC<GridDateHeaderProps> = ({
   range,
   dateStr,
-  dayEventsCount,
 }) => {
   const title = formatDateRangeTitle(range);
 
@@ -39,12 +37,7 @@ export const GridDateHeader: React.FC<GridDateHeaderProps> = ({
           {title}
         </span>
       </div>
-      <div
-        style={{ color: 'var(--grid-text-secondary)' }}
-        className="text-xs font-mono"
-      >
-        {dayEventsCount} scheduled {dayEventsCount === 1 ? 'item' : 'items'}
-      </div>
+      
     </div>
   );
 };
