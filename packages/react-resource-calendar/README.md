@@ -40,7 +40,6 @@ const events: GridEvent[] = [
     startsAt: '2026-09-04T09:00:00',
     endsAt: '2026-09-04T10:30:00',
     subTitle: 'Northwind Studio',
-    status: 'confirmed',
     colorTheme: 'blue',
   },
 ];
@@ -79,11 +78,6 @@ interface GridResource<TMeta = Record<string, unknown>> {
   subTitle?: string;
   color?: string;
   colorTheme?: string;
-  type?: string;
-  category?: string;
-  location?: string;
-  active?: boolean;
-  order?: number;
   meta?: TMeta;
 }
 ```
@@ -124,6 +118,30 @@ const multiRoomEvent: GridEvent = {
 ```
 
 Use `GridEvent<TData>` and its `data` property to retain your domain model in callbacks.
+
+The calendar only accepts fields used for display, scheduling, or customization.
+Store application-specific information in `event.data` and `resource.meta`:
+
+```ts
+const booking: GridEvent<{ patient: string; status: string; notes: string }> = {
+  id: 'booking-3',
+  title: 'Consultation',
+  resourceId: 'room-a',
+  startsAt: '2026-09-04T09:00:00',
+  endsAt: '2026-09-04T10:00:00',
+  subTitle: 'Alex Morgan',
+  data: { patient: 'Alex Morgan', status: 'confirmed', notes: 'First visit' },
+};
+```
+
+**Migration:** Event fields `patient`, `practitioner`, `roomName`, `type`, `notes`,
+and `status` were removed. Move them into `data`; use `subTitle` for secondary
+card text. Resource fields `type`, `category`, `location`, `active`, and `order`
+were removed; move these into `meta` and filter/sort resources before passing them
+in. The unused event input `conflictOverlapSide` was also removed; the calendar
+still calculates it in `GridEventLayout`. `hasConflict` remains available to
+override automatic overlap detection.
+
 
 ## Date ranges
 

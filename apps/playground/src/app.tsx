@@ -81,10 +81,7 @@ export default function App() {
       endsAt: evt.endsAt,
       subTitle: evt.patient || evt.practitioner,
       colorTheme: evt.colorTheme,
-      notes: evt.notes,
-      status: evt.status,
       data: evt,
-      rawEvent: evt,
     }));
   }, [events]);
 

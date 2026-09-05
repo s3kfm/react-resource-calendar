@@ -10,11 +10,6 @@ export interface GridResource<TMeta = Record<string, unknown>> {
   subTitle?: string;
   color?: string;
   colorTheme?: 'blue' | 'teal' | 'amber' | 'purple' | 'rose' | string;
-  type?: 'room' | 'practitioner' | 'equipment' | 'staff' | string;
-  category?: string;
-  location?: string;
-  active?: boolean;
-  order?: number;
   /**
    * Custom render function for the resource header column.
    * If provided, this function will be called instead of the default header rendering.
@@ -113,15 +108,8 @@ export interface GridEvent<TData = Record<string, unknown>> {
    */
   endsAt: Date | string;
   subTitle?: string;
-  patient?: string;
-  practitioner?: string;
-  roomName?: string;
-  type?: string;
   colorTheme?: 'blue' | 'teal' | 'amber' | 'purple' | 'rose' | string;
   hasConflict?: boolean;
-  conflictOverlapSide?: 'left' | 'right' | 'full';
-  notes?: string;
-  status?: 'confirmed' | 'pending' | 'in-progress' | 'completed' | string;
   /**
    * Custom render function for this specific event card
    */
@@ -218,8 +206,6 @@ export interface ResourceCalendarProps<
    * Visual grading/dividers style between sub-hour intervals inside an hour (default: 'none')
    */
   subHourGrading?: SubHourGradingStyle;
-
-
 
   /**
    * Height in pixels per 1-hour time slot (default: 48)

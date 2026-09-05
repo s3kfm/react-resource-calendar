@@ -229,12 +229,12 @@ export const GridEventCard = <TData = Record<string, unknown>>({
           </div>
         )}
 
-        {!isShortEvent && (event.subTitle || event.patient) && (
+        {!isShortEvent && event.subTitle && (
           <div
             style={{ color: 'var(--grid-text-muted)' }}
             className="text-[11px] truncate mt-0.5 flex items-center gap-1"
           >
-            <span className="truncate">{event.subTitle || event.patient}</span>
+            <span className="truncate">{event.subTitle}</span>
           </div>
         )}
       </div>
