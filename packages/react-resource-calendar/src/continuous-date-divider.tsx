@@ -2,14 +2,12 @@ import React from 'react';
 import { Calendar } from 'lucide-react';
 import { ContinuousDateRangeItem } from './types';
 import { formatDateRangeTitle } from './grid-utils';
-import { useGridTheme } from './theme';
 
 export interface ContinuousDateDividerProps {
   rangeItem: ContinuousDateRangeItem;
 }
 
 export const ContinuousDateDivider: React.FC<ContinuousDateDividerProps> = ({ rangeItem }) => {
-  const theme = useGridTheme();
   const title = formatDateRangeTitle(rangeItem.range);
 
   return (
@@ -20,8 +18,8 @@ export const ContinuousDateDivider: React.FC<ContinuousDateDividerProps> = ({ ra
       {/* 1px Full-Width Thin Line */}
       <div
         style={{
-          borderColor: theme.palette.borderStrong,
-          backgroundColor: theme.palette.border,
+          borderColor: 'var(--grid-border-strong)',
+          backgroundColor: 'var(--grid-border)',
         }}
         className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-[1px] border-t shadow-xs"
       />
@@ -29,14 +27,14 @@ export const ContinuousDateDivider: React.FC<ContinuousDateDividerProps> = ({ ra
       {/* Centered Date Badge */}
       <div
         style={{
-          backgroundColor: theme.palette.surfaceContainer,
-          color: theme.palette.textPrimary,
-          borderColor: theme.palette.borderStrong,
+          backgroundColor: 'var(--grid-surface-container)',
+          color: 'var(--grid-text-primary)',
+          borderColor: 'var(--grid-border-strong)',
         }}
         className="relative z-10 border shadow-xs px-3.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider flex items-center gap-1.5 backdrop-blur-xs select-none"
       >
         <Calendar
-          style={{ color: theme.palette.primary }}
+          style={{ color: 'var(--grid-primary)' }}
           className="w-3 h-3"
         />
         <span>{title}</span>

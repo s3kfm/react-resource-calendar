@@ -13,7 +13,6 @@ import { TimeGutter } from './time-gutter';
 import { ResourceColumn } from './resource-column';
 import { ContinuousDateDivider } from './continuous-date-divider';
 import { GridEventCard } from './grid-event-card';
-import { useGridTheme } from './theme';
 
 const EMPTY_EVENTS: never[] = [];
 
@@ -62,7 +61,6 @@ export const GridDateSection = <
   subHourGrading = 'none',
   isFirstSection = false,
 }: GridDateSectionProps<TData, TMeta>): React.ReactElement | null => {
-  const theme = useGridTheme();
   const pxPerMinute = timeSlotHeight / 60;
 
   // Memoize continuous calculations if group is provided
@@ -171,7 +169,7 @@ export const GridDateSection = <
           role="row"
           className="relative grid gap-[1px]"
           style={{
-            backgroundColor: theme.palette.border,
+            backgroundColor: 'var(--grid-border)',
             gridTemplateColumns: `${timeColumnWidth}px repeat(${resources.length}, ${resourceColumnWidth}px)`,
             minWidth: `${timeColumnWidth + resources.length * resourceColumnWidth}px`,
           }}
@@ -252,7 +250,7 @@ export const GridDateSection = <
         role="row"
         className="relative grid gap-[1px]"
         style={{
-          backgroundColor: theme.palette.border,
+          backgroundColor: 'var(--grid-border)',
           gridTemplateColumns: `${timeColumnWidth}px repeat(${resources.length}, ${resourceColumnWidth}px)`,
           minWidth: `${timeColumnWidth + resources.length * resourceColumnWidth}px`,
         }}

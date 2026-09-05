@@ -1,7 +1,6 @@
 import React from 'react';
 import { GridResource } from './types';
 import { GridResourceTab } from './grid-resource-tab';
-import { useGridTheme } from './theme';
 
 interface GridResourceHeaderProps<TMeta = Record<string, unknown>> {
   resources: GridResource<TMeta>[];
@@ -28,7 +27,6 @@ export const GridResourceHeader = <TMeta = Record<string, unknown>>({
   timeZoneLabel = 'TIME (EST)',
   scrollRef,
 }: GridResourceHeaderProps<TMeta>): React.ReactElement => {
-  const theme = useGridTheme();
 
   // Determine what to render in the header action slot
   let actionContent: React.ReactNode = null;
@@ -54,8 +52,8 @@ export const GridResourceHeader = <TMeta = Record<string, unknown>>({
         onKeyDown={handleActionKeyDown}
         aria-label={typeof headerActionLabel === 'string' ? headerActionLabel : 'Grid header action'}
         style={{
-          borderColor: theme.palette.border,
-          color: theme.palette.textSecondary,
+          borderColor: 'var(--grid-border)',
+          color: 'var(--grid-text-secondary)',
         }}
         className="h-full flex items-center justify-center border-l hover:opacity-80 focus-visible:ring-2 focus-visible:ring-inset focus-visible:outline-none cursor-pointer text-xs font-semibold py-1 px-3 transition-colors select-none"
       >
@@ -73,8 +71,8 @@ export const GridResourceHeader = <TMeta = Record<string, unknown>>({
       ref={scrollRef}
       role="rowgroup"
       style={{
-        backgroundColor: theme.palette.surfaceSubtle,
-        borderColor: theme.palette.border,
+        backgroundColor: 'var(--grid-surface-subtle)',
+        borderColor: 'var(--grid-border)',
       }}
       className="border-b shrink-0 flex overflow-x-auto select-none no-scrollbar sticky top-0 z-40"
       id="grid-resource-header-tabs"
@@ -87,9 +85,9 @@ export const GridResourceHeader = <TMeta = Record<string, unknown>>({
           style={{
             width: `${timeColumnWidth}px`,
             minWidth: `${timeColumnWidth}px`,
-            backgroundColor: theme.palette.surfaceSubtle,
-            borderColor: theme.palette.border,
-            color: theme.palette.textSecondary,
+            backgroundColor: 'var(--grid-surface-subtle)',
+            borderColor: 'var(--grid-border)',
+            color: 'var(--grid-text-secondary)',
           }}
           className="shrink-0 flex items-end justify-end border-r pb-2 pr-2"
         >

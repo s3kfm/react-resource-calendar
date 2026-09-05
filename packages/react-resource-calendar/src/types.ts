@@ -1,7 +1,5 @@
 import React from 'react';
-import type { GridThemeInput, GridTheme, gridThemePresets } from './theme';
 
-export type { GridTheme, GridThemeInput, GridPalette, GridEventThemeColors } from './theme';
 
 /**
  * Resource item definition for the grid header and columns.
@@ -288,9 +286,9 @@ export interface ResourceCalendarProps<
   ariaLabel?: string;
 
   /**
-   * Optional custom theme object or preset name ('default' | 'warm' | 'clinical' | 'dark')
+   * CSS theme name, applied as data-grid-theme. Built-ins: default, warm, clinical, dark.
    */
-  theme?: GridThemeInput | keyof typeof gridThemePresets;
+  theme?: string;
 
   /**
    * Optional extra CSS class names for the outer grid container

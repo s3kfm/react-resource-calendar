@@ -1,22 +1,10 @@
 @import "tailwindcss";
 @source "./**/*.{ts,tsx}";
 
-/**
- * React Resource Calendar - Component Stylesheet & CSS Variable Tokens
- * 
- * When using ResourceCalendar as an npm library, import this file:
- * import '@precision-grid/react/grid.css';
- * 
- * You can override any of these variables in your own CSS or Tailwind theme:
- * :root {
- *   --grid-primary: #2563eb;
- *   --grid-border: #e2e8f0;
- * }
+/** Calendar defaults are scoped and deliberately have zero selector specificity.
+ * Import react-resource-calendar/styles.css before your application overrides.
  */
-
-:root,
-.react-resource-calendar,
-[data-grid-theme="default"] {
+:where(.react-resource-calendar) {
   /* Surfaces */
   --grid-surface: #f8fafc;
   --grid-surface-subtle: #f1f5f9;
@@ -35,10 +23,12 @@
 
   /* Brand Accent & Feedback */
   --grid-primary: #2563eb;
-  --grid-primary-hover: #1d4ed8;
-  --grid-focus-ring: #2563eb;
+  --grid-primary-hover: var(--grid-primary);
+  --grid-focus-ring: var(--grid-primary);
   --grid-error: #dc2626;
   --grid-error-bg: rgba(220, 38, 38, 0.08);
+
+  --grid-error-border: color-mix(in srgb, var(--grid-error) 40%, transparent);
 
   /* Event Theme Presets */
   --grid-event-blue-bg: rgba(37, 99, 235, 0.08);
@@ -73,7 +63,7 @@
 }
 
 /* Warm Neutral Theme Preset */
-[data-grid-theme="warm"] {
+:where(.react-resource-calendar[data-grid-theme="warm"]) {
   --grid-surface: #faf8f5;
   --grid-surface-subtle: #f3efe8;
   --grid-surface-container: #e8e2d8;
@@ -86,11 +76,11 @@
   --grid-text-muted: #78716c;
   --grid-primary: #d97706;
   --grid-primary-hover: #b45309;
-  --grid-focus-ring: #d97706;
+  --grid-focus-ring: var(--grid-primary);
 }
 
 /* Clinical / Cyan Theme Preset */
-[data-grid-theme="clinical"] {
+:where(.react-resource-calendar[data-grid-theme="clinical"]) {
   --grid-surface: #f0fdfa;
   --grid-surface-subtle: #ccfbf1;
   --grid-surface-container: #99f6e4;
@@ -103,14 +93,14 @@
   --grid-text-muted: #0f766e;
   --grid-primary: #0d9488;
   --grid-primary-hover: #0f766e;
-  --grid-focus-ring: #0d9488;
+  --grid-focus-ring: var(--grid-primary);
   --grid-error: #e11d48;
   --grid-error-bg: rgba(225, 29, 72, 0.08);
 }
 
 /* Dark Theme Preset */
-[data-grid-theme="dark"],
-.dark .react-resource-calendar {
+:where(.react-resource-calendar[data-grid-theme="dark"]),
+:where(.dark .react-resource-calendar:not([data-grid-theme])) {
   --grid-surface: #0f172a;
   --grid-surface-subtle: #1e293b;
   --grid-surface-container: #334155;
@@ -123,7 +113,7 @@
   --grid-text-muted: #94a3b8;
   --grid-primary: #38bdf8;
   --grid-primary-hover: #0284c7;
-  --grid-focus-ring: #38bdf8;
+  --grid-focus-ring: var(--grid-primary);
   --grid-error: #f87171;
   --grid-error-bg: rgba(248, 113, 113, 0.15);
 
@@ -180,4 +170,53 @@
 
 .react-resource-calendar ::-webkit-scrollbar-thumb:hover {
   background: var(--grid-text-muted);
+}
+
+/* Category colors resolve on each event/tab, including unknown-category fallback. */
+:where(.react-resource-calendar [data-grid-color]) {
+  --grid-event-bg: var(--grid-event-blue-bg);
+  --grid-event-border: var(--grid-event-blue-border);
+  --grid-event-text: var(--grid-event-blue-text);
+  --grid-event-badge: var(--grid-event-blue-badge);
+}
+:where(.react-resource-calendar [data-grid-color="blue"]) {
+  --grid-event-bg: var(--grid-event-blue-bg);
+  --grid-event-border: var(--grid-event-blue-border);
+  --grid-event-text: var(--grid-event-blue-text);
+  --grid-event-badge: var(--grid-event-blue-badge);
+}
+:where(.react-resource-calendar [data-grid-color="teal"]) {
+  --grid-event-bg: var(--grid-event-teal-bg);
+  --grid-event-border: var(--grid-event-teal-border);
+  --grid-event-text: var(--grid-event-teal-text);
+  --grid-event-badge: var(--grid-event-teal-badge);
+}
+:where(.react-resource-calendar [data-grid-color="amber"]) {
+  --grid-event-bg: var(--grid-event-amber-bg);
+  --grid-event-border: var(--grid-event-amber-border);
+  --grid-event-text: var(--grid-event-amber-text);
+  --grid-event-badge: var(--grid-event-amber-badge);
+}
+:where(.react-resource-calendar [data-grid-color="purple"]) {
+  --grid-event-bg: var(--grid-event-purple-bg);
+  --grid-event-border: var(--grid-event-purple-border);
+  --grid-event-text: var(--grid-event-purple-text);
+  --grid-event-badge: var(--grid-event-purple-badge);
+}
+:where(.react-resource-calendar [data-grid-color="rose"]) {
+  --grid-event-bg: var(--grid-event-rose-bg);
+  --grid-event-border: var(--grid-event-rose-border);
+  --grid-event-text: var(--grid-event-rose-text);
+  --grid-event-badge: var(--grid-event-rose-badge);
+}
+:where(.react-resource-calendar [data-grid-color="emerald"]) {
+  --grid-event-bg: var(--grid-event-emerald-bg);
+  --grid-event-border: var(--grid-event-emerald-border);
+  --grid-event-text: var(--grid-event-emerald-text);
+  --grid-event-badge: var(--grid-event-emerald-badge);
+}
+
+.react-resource-calendar :focus-visible {
+  --tw-ring-color: var(--grid-focus-ring);
+  --tw-ring-offset-color: var(--grid-surface);
 }

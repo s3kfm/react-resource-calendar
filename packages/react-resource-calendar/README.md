@@ -173,7 +173,7 @@ Ranges whose end and start timestamps meet exactly render as one continuous time
 | `timeColumnWidth` | `number` | `80` | Time-gutter width |
 | `resourceColumnWidth` | `number` | `180` | Minimum resource width |
 | `timeZoneLabel` | `string` | `TIME (EST)` | Header label; it does not convert time |
-| `theme` | preset or theme object | `default` | Visual theme |
+| `theme` | `string` | default CSS palette | CSS theme name (`data-grid-theme`) |
 | `className` | `string` | empty | Extra root classes |
 | `ariaLabel` | `string` | `Resource scheduling grid` | Accessible region name |
 
@@ -218,24 +218,63 @@ Choose `default`, `warm`, `clinical`, or `dark`:
 <ResourceCalendar theme="dark" resources={resources} events={events} />
 ```
 
-Or supply a partial custom theme; unspecified values inherit from the default:
+Define your own theme in a stylesheet loaded after the package CSS:
 
 ```tsx
-<ResourceCalendar
-  theme={{
-    name: 'brand',
-    palette: { primary: '#7c3aed', surface: '#fafafa' },
-  }}
-  resources={resources}
-  events={events}
-/>
+import 'react-resource-calendar/styles.css';
+import './calendar-theme.css';
+
+<ResourceCalendar className="booking-calendar" resources={resources} events={events} />
 ```
 
-CSS variables such as `--grid-primary`, `--grid-border`, and `--grid-surface` can also be overridden in your stylesheet.
+```css
+.booking-calendar {
+  --grid-primary: #7c3aed;
+  --grid-surface: #fafafa;
+  --grid-border: #ddd6fe;
+  --grid-event-blue-bg: #ede9fe;
+  --grid-event-blue-border: #7c3aed;
+  --grid-event-blue-text: #4c1d95;
+}
+```
+
+Override only the variables you need. Set overrides on the calendar itself (as above),
+rather than on `:root`, because the calendar defines its own defaults. Variables can
+reference app tokens, for example `--grid-primary: var(--app-accent)`.
+Each calendar can have its own theme. `theme="brand"` simply sets `data-grid-theme="brand"`;
+define `.react-resource-calendar[data-grid-theme="brand"]` in your stylesheet.
+Without an explicit theme, a `.dark` ancestor selects the dark preset.
+
+Available palette variables are `--grid-surface`, `--grid-surface-subtle`,
+`--grid-surface-container`, `--grid-surface-card`, `--grid-surface-hover`,
+`--grid-border`, `--grid-border-strong`, `--grid-text-primary`,
+`--grid-text-secondary`, `--grid-text-muted`, `--grid-primary`,
+`--grid-focus-ring`, `--grid-error`, `--grid-error-bg`, and `--grid-error-border`.
+
+Event categories (`colorTheme`) include blue, teal, amber, purple, rose, and emerald.
+Each has `--grid-event-CATEGORY-bg`, `-border`, `-text`, and `-badge` variables.
+Unknown categories fall back to blue. Define a custom category using local variables:
+
+```css
+.booking-calendar [data-grid-color="surgery"] {
+  --grid-event-bg: #f0fdfa;
+  --grid-event-border: #0d9488;
+  --grid-event-text: #134e4a;
+  --grid-event-badge: #ccfbf1;
+}
+```
+
+This applies to both event cards and resource tabs. Custom event renderers also receive
+the category variables through their wrapper. Conflict colors use the error variables.
+Calculated positions and dimensions remain controlled by the layout props.
+
+**Migration:** JavaScript theme objects, theme context/hooks, theme helpers, and their
+types have been removed. Replace object-valued `theme` props with CSS overrides;
+string-valued preset props continue to work.
 
 ## TypeScript exports
 
-The main entry point exports the root component, internal building blocks, theme helpers, layout utilities, and all public types. Common types include:
+The main entry point exports the root component, internal building blocks, layout utilities, and all public types. Common types include:
 
 - `ResourceCalendarProps`
 - `GridResource`
@@ -243,7 +282,6 @@ The main entry point exports the root component, internal building blocks, theme
 - `GridDateRange`
 - `GridSlotClickInfo`
 - `GridEventLayout`
-- `GridTheme` and `GridThemeInput`
 
 ## Browser and layout notes
 

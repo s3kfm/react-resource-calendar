@@ -1,7 +1,6 @@
 import React from 'react';
 import { Plus } from 'lucide-react';
 import { SubHourGradingStyle } from './types';
-import { useGridTheme } from './theme';
 
 export interface TimeCellProps {
   slotTimeString: string;
@@ -22,19 +21,18 @@ export const TimeCell: React.FC<TimeCellProps> = ({
   subHourGrading = 'none',
   onClick,
 }) => {
-  const theme = useGridTheme();
 
   // Determine border style: hour boundary gets solid border, sub-hour intervals follow subHourGrading
   let borderBottomStyle: React.CSSProperties = {};
   if (isHourEnd) {
-    borderBottomStyle = { borderBottom: `1px solid ${theme.palette.border}` };
+    borderBottomStyle = { borderBottom: `1px solid var(--grid-border)` };
   } else {
     if (subHourGrading === 'dashed') {
-      borderBottomStyle = { borderBottom: `1px dashed ${theme.palette.border}` };
+      borderBottomStyle = { borderBottom: `1px dashed var(--grid-border)` };
     } else if (subHourGrading === 'solid') {
-      borderBottomStyle = { borderBottom: `1px solid ${theme.palette.border}` };
+      borderBottomStyle = { borderBottom: `1px solid var(--grid-border)` };
     } else if (subHourGrading === 'dotted') {
-      borderBottomStyle = { borderBottom: `1px dotted ${theme.palette.border}` };
+      borderBottomStyle = { borderBottom: `1px dotted var(--grid-border)` };
     }
   }
 
@@ -54,7 +52,7 @@ export const TimeCell: React.FC<TimeCellProps> = ({
       onKeyDown={handleKeyDown}
       style={{
         height: `${height}px`,
-        backgroundColor: theme.palette.surfaceCard,
+        backgroundColor: 'var(--grid-surface-card)',
         ...borderBottomStyle,
       }}
       className="relative group/slot cursor-pointer select-none transition-colors hover:brightness-95 focus-visible:ring-2 focus-visible:ring-inset focus-visible:outline-none"
@@ -62,7 +60,7 @@ export const TimeCell: React.FC<TimeCellProps> = ({
       data-minute={minuteOffset}
     >
       <div
-        style={{ color: theme.palette.primary }}
+        style={{ color: 'var(--grid-primary)' }}
         className="hidden group-hover/slot:flex group-focus-visible/slot:flex absolute right-1 top-1/2 -translate-y-1/2 opacity-75 pointer-events-none"
       >
         <Plus className="w-2.5 h-2.5" />

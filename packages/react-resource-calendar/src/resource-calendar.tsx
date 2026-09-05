@@ -3,12 +3,6 @@ import { ContinuousDateGroup, GridDateRange, ResourceCalendarProps } from './typ
 import { GridResourceHeader } from './grid-resource-header';
 import { GridDateSection } from './grid-date-section';
 import { groupContinuousDateRanges } from './grid-utils';
-import {
-  GridThemeContext,
-  createGridTheme,
-  gridThemePresets,
-  gridThemeToCSSVariables,
-} from './theme';
 
 export const ResourceCalendar = <
   TData = Record<string, unknown>,
@@ -41,21 +35,6 @@ export const ResourceCalendar = <
 }: ResourceCalendarProps<TData, TMeta>): React.ReactElement => {
   const headerTabsRef = useRef<HTMLDivElement | null>(null);
   const gridBodyRef = useRef<HTMLDivElement | null>(null);
-
-  // Resolve theme object from preset name or custom theme input
-  const resolvedTheme = useMemo(() => {
-    if (typeof theme === 'string' && theme in gridThemePresets) {
-      return gridThemePresets[theme as keyof typeof gridThemePresets];
-    }
-    if (typeof theme === 'object' && theme !== null) {
-      return createGridTheme(theme);
-    }
-    return gridThemePresets.default;
-  }, [theme]);
-
-  const cssVariables = useMemo(() => {
-    return gridThemeToCSSVariables(resolvedTheme) as React.CSSProperties;
-  }, [resolvedTheme]);
 
   // Compute effective date ranges (either from dateRanges prop or generated from startsAt/endsAt)
   const computedRanges = useMemo<GridDateRange[]>(() => {
@@ -108,64 +87,57 @@ export const ResourceCalendar = <
   };
 
   return (
-    <GridThemeContext.Provider value={resolvedTheme}>
-      <div
-        role="grid"
-        aria-label={ariaLabel}
-        data-grid-theme={resolvedTheme.name}
-        style={{
-          ...cssVariables,
-          backgroundColor: resolvedTheme.palette.surface,
-          color: resolvedTheme.palette.textPrimary,
-        }}
-        className={`react-resource-calendar h-full flex flex-col overflow-hidden select-none relative ${className}`}
-        id="react-resource-calendar-container"
-      >
-        {/* Top Resource Column Header */}
-        <GridResourceHeader<TMeta>
-          scrollRef={headerTabsRef}
-          resources={resources}
-          onResourceHeaderClick={onResourceHeaderClick}
-          headerAction={headerAction}
-          headerActionLabel={headerActionLabel}
-          onHeaderActionClick={onHeaderActionClick}
-          renderHeaderAction={renderHeaderAction}
-          timeColumnWidth={timeColumnWidth}
-          resourceColumnWidth={resourceColumnWidth}
-          timeZoneLabel={timeZoneLabel}
-        />
+    <div
+      role="grid"
+      aria-label={ariaLabel}
+      data-grid-theme={theme}
+      className={`react-resource-calendar h-full flex flex-col overflow-hidden select-none relative ${className}`}
+      id="react-resource-calendar-container"
+    >
+      {/* Top Resource Column Header */}
+      <GridResourceHeader<TMeta>
+        scrollRef={headerTabsRef}
+        resources={resources}
+        onResourceHeaderClick={onResourceHeaderClick}
+        headerAction={headerAction}
+        headerActionLabel={headerActionLabel}
+        onHeaderActionClick={onHeaderActionClick}
+        renderHeaderAction={renderHeaderAction}
+        timeColumnWidth={timeColumnWidth}
+        resourceColumnWidth={resourceColumnWidth}
+        timeZoneLabel={timeZoneLabel}
+      />
 
-        {/* Main Grid Scroll Area */}
-        <div
-          ref={gridBodyRef}
-          onScroll={handleBodyScroll}
-          style={{ backgroundColor: resolvedTheme.palette.surface }}
-          className="flex-1 overflow-auto relative"
-          id="react-resource-calendar-body"
-        >
-          <div className="pb-16">
-            {continuousGroups.map((group, index) => (
-              <GridDateSection<TData, TMeta>
-                key={group.id}
-                group={group}
-                resources={resources}
-                events={events}
-                onGridClick={onGridClick}
-                onEventClick={onEventClick}
-                renderEvent={renderEvent}
-                startHour={startHour}
-                endHour={endHour}
-                timeSlotHeight={timeSlotHeight}
-                timeColumnWidth={timeColumnWidth}
-                resourceColumnWidth={resourceColumnWidth}
-                intervalMinutes={intervalMinutes}
-                subHourGrading={subHourGrading}
-                isFirstSection={index === 0}
-              />
-            ))}
-          </div>
+      {/* Main Grid Scroll Area */}
+      <div
+        ref={gridBodyRef}
+        onScroll={handleBodyScroll}
+        style={{ backgroundColor: 'var(--grid-surface)' }}
+        className="flex-1 overflow-auto relative"
+        id="react-resource-calendar-body"
+      >
+        <div className="pb-16">
+          {continuousGroups.map((group, index) => (
+            <GridDateSection<TData, TMeta>
+              key={group.id}
+              group={group}
+              resources={resources}
+              events={events}
+              onGridClick={onGridClick}
+              onEventClick={onEventClick}
+              renderEvent={renderEvent}
+              startHour={startHour}
+              endHour={endHour}
+              timeSlotHeight={timeSlotHeight}
+              timeColumnWidth={timeColumnWidth}
+              resourceColumnWidth={resourceColumnWidth}
+              intervalMinutes={intervalMinutes}
+              subHourGrading={subHourGrading}
+              isFirstSection={index === 0}
+            />
+          ))}
         </div>
       </div>
-    </GridThemeContext.Provider>
+    </div>
   );
 };

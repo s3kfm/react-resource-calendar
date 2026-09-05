@@ -1,7 +1,6 @@
 import React from 'react';
 import { AlertTriangle, Clock, ArrowLeft, ArrowRight, Layers } from 'lucide-react';
 import { GridEvent, GridEventLayout } from './types';
-import { useGridTheme, resolveEventColors } from './theme';
 
 interface GridEventCardProps<TData = Record<string, unknown>> {
   key?: React.Key;
@@ -17,8 +16,6 @@ export const GridEventCard = <TData = Record<string, unknown>>({
   onClick,
   renderEvent,
 }: GridEventCardProps<TData>): React.ReactElement => {
-  const theme = useGridTheme();
-  const eventColors = resolveEventColors(event.colorTheme, theme);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' || e.key === ' ') {
@@ -33,6 +30,7 @@ export const GridEventCard = <TData = Record<string, unknown>>({
     return (
       <div
         id={`grid-event-${event.id}`}
+        data-grid-color={(event.colorTheme || 'blue').toLowerCase()}
         role="button"
         tabIndex={0}
         aria-label={`Event: ${event.title}`}
@@ -57,6 +55,7 @@ export const GridEventCard = <TData = Record<string, unknown>>({
     return (
       <div
         id={`grid-event-${event.id}`}
+        data-grid-color={(event.colorTheme || 'blue').toLowerCase()}
         role="button"
         tabIndex={0}
         aria-label={`Event: ${event.title}`}
@@ -101,31 +100,31 @@ export const GridEventCard = <TData = Record<string, unknown>>({
   let roundedBottomRight = true;
 
   const dynamicStyles: React.CSSProperties = {
-    backgroundColor: layout.hasConflict ? theme.palette.errorBg : eventColors.bg,
-    color: layout.hasConflict ? theme.palette.error : eventColors.text,
-    borderLeft: `3px solid ${layout.hasConflict ? theme.palette.error : eventColors.border}`,
+    backgroundColor: layout.hasConflict ? 'var(--grid-error-bg)' : 'var(--grid-event-bg)',
+    color: layout.hasConflict ? 'var(--grid-error)' : 'var(--grid-event-text)',
+    borderLeft: `3px solid ${layout.hasConflict ? 'var(--grid-error)' : 'var(--grid-event-border)'}`,
   };
 
   if (layout.hasConflict) {
-    dynamicStyles.border = `2px solid ${theme.palette.error}`;
+    dynamicStyles.border = `2px solid var(--grid-error)`;
   }
 
   if (layout.dashedBorderLeft) {
     roundedTopLeft = false;
     roundedBottomLeft = false;
-    dynamicStyles.borderLeft = `3px dashed ${eventColors.border}`;
+    dynamicStyles.borderLeft = `3px dashed var(--grid-event-border)`;
   }
 
   if (layout.dashedBorderRight) {
     roundedTopRight = false;
     roundedBottomRight = false;
-    dynamicStyles.borderRight = `3px dashed ${eventColors.border}`;
+    dynamicStyles.borderRight = `3px dashed var(--grid-event-border)`;
   }
 
   if (layout.extendsBeyondEnd) {
     roundedBottomLeft = false;
     roundedBottomRight = false;
-    dynamicStyles.borderBottom = `3px dotted ${theme.palette.error}`;
+    dynamicStyles.borderBottom = `3px dotted var(--grid-error)`;
   }
 
   const roundingClass = `${roundedTopLeft ? 'rounded-tl' : 'rounded-tl-none'} ${
@@ -145,6 +144,7 @@ export const GridEventCard = <TData = Record<string, unknown>>({
   return (
     <div
       id={`grid-event-${event.id}`}
+      data-grid-color={(event.colorTheme || 'blue').toLowerCase()}
       data-event-id={event.id}
       role="button"
       tabIndex={0}
@@ -182,7 +182,7 @@ export const GridEventCard = <TData = Record<string, unknown>>({
           <div className="flex items-center gap-1 shrink-0">
             {layout.colSpan && layout.colSpan > 1 && (
               <span
-                style={{ backgroundColor: eventColors.badgeBg || 'rgba(0,0,0,0.08)' }}
+                style={{ backgroundColor: 'var(--grid-event-badge)' }}
                 className="text-[9px] font-medium px-1 py-0.2 rounded text-current flex items-center gap-0.5 shrink-0"
                 title={`Spans ${layout.colSpan} rooms (${layout.connectedResourceNames?.join(', ') || ''})`}
               >
@@ -197,7 +197,7 @@ export const GridEventCard = <TData = Record<string, unknown>>({
             )}
             {layout.hasConflict && (
               <span
-                style={{ color: theme.palette.error }}
+                style={{ color: 'var(--grid-error)' }}
                 title="Overlap Conflict with another scheduled event"
               >
                 <AlertTriangle className="w-3.5 h-3.5" />
@@ -206,10 +206,10 @@ export const GridEventCard = <TData = Record<string, unknown>>({
             {layout.extendsBeyondEnd && isMicroEvent && layout.overflowText && (
               <span
                 style={{
-                  color: theme.palette.error,
-                  borderColor: theme.palette.error,
+                  color: 'var(--grid-error)',
+                  borderColor: 'var(--grid-error)',
                 }}
-                className="text-[9px] font-mono font-bold bg-white/90 px-1 py-0.2 rounded border border-dotted"
+                className="text-[9px] font-mono font-bold bg-[var(--grid-surface-card)] px-1 py-0.2 rounded border border-dotted"
               >
                 {layout.overflowText}
               </span>
@@ -219,7 +219,7 @@ export const GridEventCard = <TData = Record<string, unknown>>({
 
         {timeDisplay && !isMicroEvent && (
           <div
-            style={{ color: theme.palette.textSecondary }}
+            style={{ color: 'var(--grid-text-secondary)' }}
             className="font-mono text-[10px] truncate mt-0.5 flex items-center justify-between"
           >
             <span>{timeDisplay}</span>
@@ -233,7 +233,7 @@ export const GridEventCard = <TData = Record<string, unknown>>({
 
         {!isShortEvent && (event.subTitle || event.patient) && (
           <div
-            style={{ color: theme.palette.textMuted }}
+            style={{ color: 'var(--grid-text-muted)' }}
             className="text-[11px] truncate mt-0.5 flex items-center gap-1"
           >
             <span className="truncate">{event.subTitle || event.patient}</span>
@@ -245,8 +245,8 @@ export const GridEventCard = <TData = Record<string, unknown>>({
       {layout.extendsBeyondEnd && !isMicroEvent && (
         <div
           style={{
-            borderColor: `${theme.palette.error}66`,
-            color: theme.palette.error,
+            borderColor: 'var(--grid-error-border)',
+            color: 'var(--grid-error)',
           }}
           className="mt-auto pt-1 flex items-center justify-between text-[10px] font-mono font-bold border-t border-dotted"
         >
@@ -255,7 +255,7 @@ export const GridEventCard = <TData = Record<string, unknown>>({
             <span>{layout.overflowText || 'more'}</span>
           </span>
           <span
-            style={{ color: theme.palette.textMuted }}
+            style={{ color: 'var(--grid-text-muted)' }}
             className="text-[9px] font-sans font-medium uppercase tracking-wider shrink-0 hidden sm:inline"
           >
             Out of range

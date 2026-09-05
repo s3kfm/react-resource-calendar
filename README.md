@@ -62,7 +62,7 @@ The file contains the Tailwind entry point, the classes used by the package, and
 When adding or changing styles:
 
 1. Keep reusable colours and surface values in the grid theme rather than hard-coding them in a component.
-2. Add new theme values to `theme.ts` and expose the corresponding CSS custom property in `grid.css` when appropriate.
+2. Define theme values as CSS custom properties in `grid.css` and consume them with `var(--grid-...)`.
 3. Check the change with every built-in theme: `default`, `warm`, `clinical`, and `dark`.
 4. Verify narrow resource columns, overlapping events, multi-resource events, and long labels in the playground.
 

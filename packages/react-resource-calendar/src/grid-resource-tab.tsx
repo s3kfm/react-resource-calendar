@@ -1,6 +1,5 @@
 import React from 'react';
 import { GridResource } from './types';
-import { useGridTheme, resolveEventColors } from './theme';
 
 export interface GridResourceTabProps<TMeta = Record<string, unknown>> {
   key?: React.Key;
@@ -16,11 +15,9 @@ export const GridResourceTab = <TMeta = Record<string, unknown>>({
   resourceColumnWidth = 180,
   onResourceHeaderClick,
 }: GridResourceTabProps<TMeta>): React.ReactElement => {
-  const theme = useGridTheme();
-  const eventColors = resolveEventColors(resource.colorTheme || resource.color, theme);
   const dotColor = resource.color?.startsWith('#') || resource.color?.startsWith('rgb')
     ? resource.color
-    : eventColors.border;
+    : 'var(--grid-event-border)';
 
   const handleClick = (e: React.MouseEvent) => {
     if (onResourceHeaderClick) {
@@ -40,6 +37,7 @@ export const GridResourceTab = <TMeta = Record<string, unknown>>({
   return (
     <div
       id={`grid-resource-tab-${resource.id}`}
+      data-grid-color={(resource.colorTheme || resource.color || 'blue').toLowerCase()}
       role={isInteractive ? 'button' : 'columnheader'}
       aria-label={`Resource column: ${resource.label}${resource.subTitle ? `, ${resource.subTitle}` : ''}`}
       tabIndex={isInteractive ? 0 : undefined}
@@ -48,8 +46,8 @@ export const GridResourceTab = <TMeta = Record<string, unknown>>({
       style={{
         width: `${resourceColumnWidth}px`,
         minWidth: `${resourceColumnWidth}px`,
-        backgroundColor: theme.palette.surfaceSubtle,
-        borderColor: theme.palette.border,
+        backgroundColor: 'var(--grid-surface-subtle)',
+        borderColor: 'var(--grid-border)',
       }}
       className={`shrink-0 flex flex-col items-center justify-center py-2 px-2 select-none ${
         !isFirst ? 'border-l' : ''
@@ -71,7 +69,7 @@ export const GridResourceTab = <TMeta = Record<string, unknown>>({
               style={{ backgroundColor: dotColor }}
             />
             <span
-              style={{ color: theme.palette.textPrimary }}
+              style={{ color: 'var(--grid-text-primary)' }}
               className="text-[14px] font-semibold truncate transition-colors"
             >
               {resource.label}
@@ -79,7 +77,7 @@ export const GridResourceTab = <TMeta = Record<string, unknown>>({
           </div>
           {resource.subTitle && (
             <span
-              style={{ color: theme.palette.textMuted }}
+              style={{ color: 'var(--grid-text-muted)' }}
               className="text-[11px] truncate max-w-full mt-0.5"
             >
               {resource.subTitle}

@@ -12,4 +12,3 @@ export { TimeGutter } from './time-gutter';
 export { GridEventCard } from './grid-event-card';
 export * from './types';
 export * from './grid-utils';
-export * from './theme';

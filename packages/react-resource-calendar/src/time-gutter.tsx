@@ -1,5 +1,4 @@
 import React from 'react';
-import { useGridTheme } from './theme';
 
 export interface TimeGutterProps {
   displayHours: string[];
@@ -10,7 +9,6 @@ export const TimeGutter: React.FC<TimeGutterProps> = ({
   displayHours,
   timeSlotHeight = 48,
 }) => {
-  const theme = useGridTheme();
   const totalHeight = displayHours.length * timeSlotHeight;
 
   return (
@@ -19,7 +17,7 @@ export const TimeGutter: React.FC<TimeGutterProps> = ({
       aria-label="Time indicators"
       style={{
         height: `${totalHeight}px`,
-        backgroundColor: theme.palette.surfaceSubtle,
+        backgroundColor: 'var(--grid-surface-subtle)',
       }}
       className="flex flex-col relative select-none"
     >
@@ -30,8 +28,8 @@ export const TimeGutter: React.FC<TimeGutterProps> = ({
           aria-label={`Time: ${hour}`}
           style={{
             height: `${timeSlotHeight}px`,
-            borderColor: theme.palette.border,
-            color: theme.palette.textSecondary,
+            borderColor: 'var(--grid-border)',
+            color: 'var(--grid-text-secondary)',
           }}
           className="flex justify-end pr-2 items-center font-mono text-[12px] font-medium border-b opacity-90"
         >

@@ -9,7 +9,6 @@ import {
   GridEvent,
   GridDateRange,
   GridSlotClickInfo,
-  GridThemePresetName,
 } from 'react-resource-calendar';
 import { EventModal } from './components/event-modal';
 import { ConflictResolverModal } from './components/conflict-resolver-modal';
@@ -17,7 +16,7 @@ import { ResourceManagementModal } from './components/resource-management-modal'
 
 export default function App() {
   // Theme state
-  const [selectedTheme, setSelectedTheme] = useState<GridThemePresetName>('default');
+  const [selectedTheme, setSelectedTheme] = useState('default');
 
   // Data State: Resources & Scheduled Events
   const [resources, setResources] = useState<Resource[]>(INITIAL_RESOURCES);
@@ -193,7 +192,7 @@ export default function App() {
                   id="theme-select"
                   aria-label="Select grid theme preset"
                   value={selectedTheme}
-                  onChange={(e) => setSelectedTheme(e.target.value as GridThemePresetName)}
+                  onChange={(e) => setSelectedTheme(e.target.value)}
                   className="bg-transparent text-xs font-semibold text-[#191c1e] cursor-pointer focus:outline-none"
                 >
                   <option value="default">Default</option>

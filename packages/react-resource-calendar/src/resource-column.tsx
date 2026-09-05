@@ -3,7 +3,6 @@ import { ContinuousDateGroup, ContinuousDateRangeItem, GridDateRange, GridEvent,
 import { GridEventCard } from './grid-event-card';
 import { TimeCell } from './time-cell';
 import { computeGridColumnLayout, computeGridContinuousColumnLayout } from './grid-utils';
-import { useGridTheme } from './theme';
 
 export interface ResourceColumnProps<
   TData = Record<string, unknown>,
@@ -48,7 +47,6 @@ export const ResourceColumn = <
   onEventClick,
   renderEvent,
 }: ResourceColumnProps<TData, TMeta>): React.ReactElement => {
-  const theme = useGridTheme();
 
   // If group is provided, render continuous layout across all ranges in the group
   if (group) {
@@ -77,7 +75,7 @@ export const ResourceColumn = <
         className="relative group/col"
         style={{
           height: `${totalHeight}px`,
-          backgroundColor: theme.palette.surfaceCard,
+          backgroundColor: 'var(--grid-surface-card)',
         }}
       >
         {/* Background interval grid cells for each range in this continuous group */}
@@ -169,7 +167,7 @@ export const ResourceColumn = <
       className="relative group/col"
       style={{
         height: `${totalHeight}px`,
-        backgroundColor: theme.palette.surfaceCard,
+        backgroundColor: 'var(--grid-surface-card)',
       }}
     >
       {/* Background interval grid cells */}
