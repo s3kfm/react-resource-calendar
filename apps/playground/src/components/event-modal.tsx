@@ -39,8 +39,6 @@ export const EventModal: React.FC<EventModalProps> = ({
       const resList =
         initialEvent.resourceIds && initialEvent.resourceIds.length > 0
           ? initialEvent.resourceIds
-          : initialEvent.resourceId
-          ? [initialEvent.resourceId]
           : [resources[0]?.id || 'rm-101'];
       setSelectedResourceIds(resList);
       setPatient(initialEvent.patient || '');
@@ -72,21 +70,19 @@ export const EventModal: React.FC<EventModalProps> = ({
   };
 
   // Check live conflict
-  const primaryResourceId = selectedResourceIds[0] || 'rm-101';
   const simulatedEvent: ScheduledEvent = {
     id: initialEvent?.id || 'temp-id',
     title,
     startsAt,
     endsAt,
-    resourceId: primaryResourceId,
-    resourceIds: selectedResourceIds.length > 1 ? selectedResourceIds : undefined,
+    resourceIds: selectedResourceIds,
     type,
     colorTheme,
   };
 
   const conflictingEvents = existingEvents.filter((e) => {
     if (e.id === initialEvent?.id) return false;
-    const eResources = e.resourceIds && e.resourceIds.length > 0 ? e.resourceIds : [e.resourceId];
+    const eResources = e.resourceIds;
     const sharesResource = selectedResourceIds.some((rId) => eResources.includes(rId));
     return sharesResource && doEventsOverlap(simulatedEvent, e);
   });
@@ -106,8 +102,7 @@ export const EventModal: React.FC<EventModalProps> = ({
       title: title.trim(),
       startsAt,
       endsAt,
-      resourceId: selectedResourceIds[0],
-      resourceIds: selectedResourceIds.length > 1 ? selectedResourceIds : undefined,
+      resourceIds: selectedResourceIds,
       patient: patient.trim() || undefined,
       type,
       colorTheme,

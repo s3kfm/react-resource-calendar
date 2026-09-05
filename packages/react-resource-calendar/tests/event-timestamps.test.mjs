@@ -9,7 +9,7 @@ import {
 } from '../dist/index.js';
 
 const event = (startsAt, endsAt, id = 'booking') => ({
-  id, title: 'Booking', resourceId: 'room', startsAt, endsAt,
+  id, title: 'Booking', resourceIds: ['room'], startsAt, endsAt,
 });
 
 test('Date and offset ISO inputs resolve to the same instants and local labels', () => {

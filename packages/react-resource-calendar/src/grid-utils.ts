@@ -171,7 +171,7 @@ export function computeGridContinuousColumnLayout<TData = any>(
 
   // Find all events for this resource that overlap this continuous date group
   const matchingEvents = events
-    .filter((e) => e.resourceId === resourceId)
+    .filter((e) => e.resourceIds.includes(resourceId))
     .map((e) => {
       const timestamps = getEventAbsoluteTimestamps(e);
       return {
@@ -292,12 +292,7 @@ export function computeGridContinuousSectionLayout<TData = any, TMeta = any>(
   const eventEntries = events
     .map((e) => {
       const timestamps = getEventAbsoluteTimestamps(e);
-      const requestedResourceIds: string[] =
-        e.resourceIds && e.resourceIds.length > 0
-          ? e.resourceIds
-          : e.resourceId
-          ? [e.resourceId]
-          : [];
+      const requestedResourceIds = [...new Set(e.resourceIds)];
 
       // Find column indices for these resources in the current grid
       const matchedColumns: { id: string; colIdx: number; label: string }[] = [];
@@ -481,12 +476,7 @@ export function computeGridDiscreteSectionLayout<TData = any, TMeta = any>(
   const eventEntries = events
     .map((e) => {
       const { startMs, endMs } = getEventAbsoluteTimestamps(e);
-      const requestedResourceIds: string[] =
-        e.resourceIds && e.resourceIds.length > 0
-          ? e.resourceIds
-          : e.resourceId
-          ? [e.resourceId]
-          : [];
+      const requestedResourceIds = [...new Set(e.resourceIds)];
 
       const matchedColumns: { id: string; colIdx: number; label: string }[] = [];
       requestedResourceIds.forEach((resId) => {

@@ -54,7 +54,7 @@ export const ResourceManagementModal: React.FC<ResourceManagementModalProps> = (
 
   const currentResource = resources.find((r) => r.id === activeTabId) || resources[0];
   const assignedEvents = currentResource
-    ? events.filter((e) => e.resourceId === currentResource.id)
+    ? events.filter((e) => e.resourceIds.includes(currentResource.id))
     : [];
 
   const handleConfirmDelete = (id: string) => {
@@ -120,7 +120,7 @@ export const ResourceManagementModal: React.FC<ResourceManagementModalProps> = (
             </div>
 
             {resources.map((res) => {
-              const count = events.filter((e) => e.resourceId === res.id).length;
+              const count = events.filter((e) => e.resourceIds.includes(res.id)).length;
               const isSelected = activeTabId === res.id;
 
               return (

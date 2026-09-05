@@ -36,7 +36,7 @@ const events: GridEvent[] = [
   {
     id: 'booking-1',
     title: 'Product shoot',
-    resourceId: 'room-a',
+    resourceIds: ['room-a'],
     startsAt: '2026-09-04T09:00:00',
     endsAt: '2026-09-04T10:30:00',
     subTitle: 'Northwind Studio',
@@ -105,7 +105,11 @@ For overnight events, explicitly put the following date in `endsAt`.
 **Migration:** `date`, `endDate`, `startTime`, and `endTime` were removed from
 `GridEvent`. Combine each date and time into its corresponding timestamp.
 
-Assign one resource with `resourceId`, or span several resources with `resourceIds`:
+Assign resources with the required `resourceIds` array, including for a single resource. An empty array leaves an event unassigned (not rendered). Duplicate IDs are treated as one assignment.
+
+**Migration:** Replace event `resourceId: 'room-a'` with `resourceIds: ['room-a']`. Slot-click callbacks still return a single `resourceId`, identifying the clicked column.
+
+To span several resources:
 
 ```ts
 const multiRoomEvent: GridEvent = {
@@ -126,7 +130,7 @@ Store application-specific information in `event.data` and `resource.meta`:
 const booking: GridEvent<{ patient: string; status: string; notes: string }> = {
   id: 'booking-3',
   title: 'Consultation',
-  resourceId: 'room-a',
+  resourceIds: ['room-a'],
   startsAt: '2026-09-04T09:00:00',
   endsAt: '2026-09-04T10:00:00',
   subTitle: 'Alex Morgan',

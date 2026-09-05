@@ -9,7 +9,7 @@ interface ConflictResolverModalProps {
   conflicts: ConflictItem[];
   resources: Resource[];
   onResolveByShiftTime: (eventId: string, startsAt: string, endsAt: string) => void;
-  onResolveByReassignResource: (eventId: string, newResourceId: string) => void;
+  onResolveByReassignResource: (eventId: string, oldResourceId: string, newResourceId: string) => void;
   onSelectEventToEdit: (event: ScheduledEvent) => void;
 }
 
@@ -64,7 +64,7 @@ export const ConflictResolverModal: React.FC<ConflictResolverModalProps> = ({
             conflicts.map((conflict, index) => {
               const { eventA, eventB, resourceName, overlapDurationMinutes } = conflict;
               const otherRooms = resources.filter(
-                (r) => r.type === 'room' && r.id !== conflict.resourceId && r.active
+                (r) => r.type === 'room' && !eventB.resourceIds.includes(r.id) && r.active
               );
 
               return (
@@ -157,7 +157,7 @@ export const ConflictResolverModal: React.FC<ConflictResolverModalProps> = ({
                       {otherRooms.length > 0 ? (
                         <button
                           onClick={() => {
-                            onResolveByReassignResource(eventB.id, otherRooms[0].id);
+                            onResolveByReassignResource(eventB.id, conflict.resourceId, otherRooms[0].id);
                           }}
                           className="flex flex-col text-left p-2 rounded bg-white hover:bg-[#86f2e4]/20 border border-[#006a61]/30 text-xs transition-colors group"
                         >

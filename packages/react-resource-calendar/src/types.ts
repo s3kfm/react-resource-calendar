@@ -97,8 +97,8 @@ export interface GridEventLayout {
 export interface GridEvent<TData = Record<string, unknown>> {
   id: string;
   title: string;
-  resourceId?: string; // Primary resource (e.g. 'rm-101')
-  resourceIds?: string[]; // Multiple resources (e.g. ['rm-101', 'rm-102'] or ['rm-101', 'dr-smith'])
+  /** Assigned resources. Use an array even for a single resource. Empty means unassigned. */
+  resourceIds: string[];
   /**
    * Primary start timestamp (Date object or ISO-8601 string)
    */

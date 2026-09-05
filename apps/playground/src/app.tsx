@@ -75,7 +75,6 @@ export default function App() {
     return events.map((evt) => ({
       id: evt.id,
       title: evt.title,
-      resourceId: evt.resourceId,
       resourceIds: evt.resourceIds,
       startsAt: evt.startsAt,
       endsAt: evt.endsAt,
@@ -88,7 +87,7 @@ export default function App() {
   // Grid Event Handlers
   const handleGridClick = (info: GridSlotClickInfo) => {
     setEditingEvent({
-      resourceId: info.resourceId,
+      resourceIds: [info.resourceId],
       startsAt: new Date(`${info.dateStr}T${info.time}:00`).toISOString(),
       endsAt: new Date(new Date(`${info.dateStr}T${info.time}:00`).getTime() + 3600000).toISOString(),
     });
@@ -140,11 +139,11 @@ export default function App() {
     );
   };
 
-  const handleResolveByReassignResource = (eventId: string, newResourceId: string) => {
+  const handleResolveByReassignResource = (eventId: string, oldResourceId: string, newResourceId: string) => {
     setEvents((prev) =>
       prev.map((e) =>
         e.id === eventId
-          ? { ...e, resourceId: newResourceId, status: 'confirmed' }
+          ? { ...e, resourceIds: [...new Set(e.resourceIds.map(id => id === oldResourceId ? newResourceId : id))], status: 'confirmed' }
           : e
       )
     );
@@ -163,7 +162,7 @@ export default function App() {
   const handleDeleteResource = (resourceId: string) => {
     setResources((prev) => prev.filter((r) => r.id !== resourceId));
     // Remove appointments assigned to this deleted resource
-    setEvents((prev) => prev.filter((e) => e.resourceId !== resourceId));
+    setEvents((prev) => prev.filter((e) => !e.resourceIds.includes(resourceId)));
   };
 
   return (

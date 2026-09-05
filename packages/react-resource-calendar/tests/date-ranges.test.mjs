@@ -12,7 +12,7 @@ test('partial-hour bounds, row heights, event positions and clicks share exact t
   assert.deepEqual(group.ranges[0].rows.map(row => row.heightPx), [30, 60, 10]);
   const resource = { id: 'room', label: 'Room' };
   const [item] = computeGridContinuousSectionLayout([
-    { id: 'e', title: 'Event', resourceId: 'room', ...range('2026-09-05T09:00:00', '2026-09-05T09:30:00') },
+    { id: 'e', title: 'Event', resourceIds: ['room'], ...range('2026-09-05T09:00:00', '2026-09-05T09:30:00') },
   ], [resource], group.start, group.end, 80, 180, 1);
   assert.equal(item.layout.topPx, 30);
   assert.equal(item.layout.heightPx, 30);

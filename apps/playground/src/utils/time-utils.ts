@@ -75,11 +75,10 @@ export function detectAllConflicts(
   const dateResourceGroups = new Map<string, ScheduledEvent[]>();
 
   events.forEach((evt) => {
-    const key = evt.resourceId;
-    if (!dateResourceGroups.has(key)) {
-      dateResourceGroups.set(key, []);
+    for (const key of new Set(evt.resourceIds)) {
+      if (!dateResourceGroups.has(key)) dateResourceGroups.set(key, []);
+      dateResourceGroups.get(key)!.push(evt);
     }
-    dateResourceGroups.get(key)!.push(evt);
   });
 
   dateResourceGroups.forEach((groupEvents, key) => {
@@ -102,7 +101,7 @@ export function detectAllConflicts(
           const overlapDurationMinutes = (overlapEnd - overlapStart) / 60000;
 
           conflicts.push({
-            id: `conflict_${evA.id}_${evB.id}`,
+            id: `conflict_${resourceId}_${evA.id}_${evB.id}`,
             date: toDateTimeInput(new Date(overlapStart).toISOString()).slice(0, 10),
             resourceId,
             resourceName,

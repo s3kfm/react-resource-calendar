@@ -18,8 +18,7 @@ export interface ScheduledEvent {
   title: string;
   startsAt: string; // ISO timestamp
   endsAt: string; // ISO timestamp
-  resourceId: string; // Primary resource (e.g. 'rm-101')
-  resourceIds?: string[]; // Optional array of multiple resources for multi-room events
+  resourceIds: string[];
   linkedResourceId?: string; // Optional linked resource (e.g. 'dr-smith' or 'rm-101')
   patient?: string;
   practitioner?: string;
