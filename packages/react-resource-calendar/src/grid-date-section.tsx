@@ -2,11 +2,9 @@ import React, { useMemo } from 'react';
 import { ContinuousDateGroup, GridDateRange, GridEvent, GridResource, GridSlotClickInfo, SubHourGradingStyle } from './types';
 import {
   formatDateToYYYYMMDD,
-  generateDisplayHours,
+  groupContinuousDateRanges,
   getEventAbsoluteTimestamps,
-  getEventTimeInfo,
   computeGridContinuousSectionLayout,
-  computeGridDiscreteSectionLayout,
 } from './grid-utils';
 import { GridDateHeader } from './grid-date-header';
 import { TimeGutter } from './time-gutter';
@@ -31,8 +29,6 @@ export interface GridDateSectionProps<
     event: GridEvent<TData>,
     layout: { topPx: number; heightPx: number; hasConflict?: boolean }
   ) => React.ReactNode;
-  startHour?: number;
-  endHour?: number;
   timeSlotHeight?: number;
   timeColumnWidth?: number;
   resourceColumnWidth?: number;
@@ -45,15 +41,13 @@ export const GridDateSection = <
   TData = Record<string, unknown>,
   TMeta = Record<string, unknown>
 >({
-  group,
+  group: suppliedGroup,
   range,
   resources,
   events,
   onGridClick,
   onEventClick,
   renderEvent,
-  startHour = 8,
-  endHour = 24,
   timeSlotHeight = 48,
   timeColumnWidth = 80,
   resourceColumnWidth = 180,
@@ -62,6 +56,7 @@ export const GridDateSection = <
   isFirstSection = false,
 }: GridDateSectionProps<TData, TMeta>): React.ReactElement | null => {
   const pxPerMinute = timeSlotHeight / 60;
+  const group = useMemo(() => suppliedGroup ?? (range ? groupContinuousDateRanges([range], timeSlotHeight)[0] : undefined), [suppliedGroup, range, timeSlotHeight]);
 
   // Memoize continuous calculations if group is provided
   const groupEventsCount = useMemo(() => {
@@ -74,8 +69,8 @@ export const GridDateSection = <
     }).length;
   }, [group, events]);
 
-  const allDisplayHours = useMemo(() => {
-    return group ? group.ranges.flatMap((r) => r.displayHours) : [];
+  const allRows = useMemo(() => {
+    return group ? group.ranges.flatMap((r) => r.rows) : [];
   }, [group]);
 
   const continuousSectionEventLayouts = useMemo(() => {
@@ -90,48 +85,6 @@ export const GridDateSection = <
       pxPerMinute
     );
   }, [group, events, resources, timeColumnWidth, resourceColumnWidth, pxPerMinute]);
-
-  // Discrete range calculations
-  const effectiveStartHour =
-    range?.startHour !== undefined
-      ? range.startHour
-      : range?.startsAt instanceof Date
-      ? range.startsAt.getHours()
-      : startHour;
-
-  const effectiveEndHour =
-    range?.endHour !== undefined
-      ? range.endHour
-      : endHour;
-
-  const dateStr = range ? formatDateToYYYYMMDD(range.startsAt) : '';
-
-  const displayHours = useMemo(() => {
-    if (!range) return [];
-    return generateDisplayHours(effectiveStartHour, effectiveEndHour);
-  }, [range, effectiveStartHour, effectiveEndHour]);
-
-  const dayEventsCount = useMemo(() => {
-    if (!range || !dateStr) return 0;
-    return events.filter((e) => {
-      const info = getEventTimeInfo(e);
-      return info.dateStr === dateStr;
-    }).length;
-  }, [range, dateStr, events, effectiveStartHour]);
-
-  const discreteSectionEventLayouts = useMemo(() => {
-    if (!range || !dateStr) return [];
-    return computeGridDiscreteSectionLayout(
-      events,
-      resources,
-      dateStr,
-      effectiveStartHour,
-      effectiveEndHour,
-      timeColumnWidth,
-      resourceColumnWidth,
-      pxPerMinute
-    );
-  }, [range, dateStr, events, resources, effectiveStartHour, effectiveEndHour, timeColumnWidth, resourceColumnWidth, pxPerMinute]);
 
   // If group is provided, render continuous group
   if (group) {
@@ -176,8 +129,7 @@ export const GridDateSection = <
         >
           {/* Time Gutter Column for all continuous hours */}
           <TimeGutter
-            displayHours={allDisplayHours}
-            timeSlotHeight={timeSlotHeight}
+            rows={allRows}
           />
 
           {/* Unified Resource Columns (Grid Background Slots) */}
@@ -200,7 +152,7 @@ export const GridDateSection = <
           {/* Sticky Continuous Date Dividers for 2nd and subsequent continuous days */}
           {group.ranges.slice(1).map((rangeItem) => (
             <div
-              key={`continuous-wrapper-${rangeItem.dateStr}`}
+              key={`continuous-wrapper-${rangeItem.start.getTime()}`}
               className="absolute left-0 right-0 pointer-events-none z-15"
               style={{
                 top: `${rangeItem.offsetPxFromGroupStart}px`,
@@ -230,70 +182,5 @@ export const GridDateSection = <
     );
   }
 
-  // Fallback single range rendering
-  if (!range) return null;
-
-  return (
-    <div role="rowgroup" className="relative mb-6" id={`grid-date-section-${dateStr}`}>
-      {/* Date Header - Sticky for this date section */}
-      <div className="sticky top-0 z-20">
-        <GridDateHeader
-          range={range}
-          dateStr={dateStr}
-          dayEventsCount={dayEventsCount}
-          isFirstSection={isFirstSection}
-        />
-      </div>
-
-      {/* Grid container with 1px border gap */}
-      <div
-        role="row"
-        className="relative grid gap-[1px]"
-        style={{
-          backgroundColor: 'var(--grid-border)',
-          gridTemplateColumns: `${timeColumnWidth}px repeat(${resources.length}, ${resourceColumnWidth}px)`,
-          minWidth: `${timeColumnWidth + resources.length * resourceColumnWidth}px`,
-        }}
-      >
-        {/* Time Gutter Column */}
-        <TimeGutter
-          displayHours={displayHours}
-          timeSlotHeight={timeSlotHeight}
-        />
-
-        {/* Resource Columns */}
-        {resources.map((resource) => (
-          <ResourceColumn
-            key={resource.id}
-            range={range}
-            dateStr={dateStr}
-            resource={resource}
-            events={EMPTY_EVENTS} // Handled by section-level multi-resource overlay
-            displayHours={displayHours}
-            startHour={effectiveStartHour}
-            timeSlotHeight={timeSlotHeight}
-            intervalMinutes={intervalMinutes}
-            subHourGrading={subHourGrading}
-            pxPerMinute={pxPerMinute}
-            onGridClick={onGridClick}
-            onEventClick={onEventClick}
-            renderEvent={renderEvent}
-          />
-        ))}
-
-        {/* Multi-Resource Aware Event Overlay Layer */}
-        <div className="absolute inset-0 pointer-events-none z-10">
-          {discreteSectionEventLayouts.map(({ event, layout, segmentKey }) => (
-            <GridEventCard
-              key={segmentKey}
-              event={event}
-              layout={layout}
-              onClick={onEventClick}
-              renderEvent={renderEvent}
-            />
-          ))}
-        </div>
-      </div>
-    </div>
-  );
+  return null;
 };

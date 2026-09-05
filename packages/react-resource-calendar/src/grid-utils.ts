@@ -61,143 +61,63 @@ export function generateDisplayHours(startHour: number = 8, endHour: number = 24
   return hours;
 }
 
-/**
- * Calculates start and end timestamps and hours for a single GridDateRange
- */
-export function getEffectiveRangeBounds(
-  range: GridDateRange,
-  defaultStartHour = 8,
-  defaultEndHour = 24
-): {
-  start: Date;
-  end: Date;
-  startHour: number;
-  endHour: number;
-  hoursCount: number;
-} {
+/** Validates exact range endpoints without rounding or inferring dates. */
+export function getEffectiveRangeBounds(range: GridDateRange): { start: Date; end: Date } {
   const start = new Date(range.startsAt);
-  const effectiveStartHour =
-    range.startHour !== undefined
-      ? range.startHour
-      : range.startsAt instanceof Date
-      ? range.startsAt.getHours()
-      : defaultStartHour;
-
-  start.setHours(effectiveStartHour, 0, 0, 0);
-
-  const effectiveEndHour =
-    range.endHour !== undefined
-      ? range.endHour
-      : defaultEndHour;
-
-  const end = new Date(range.endsAt || range.startsAt);
-  if (effectiveEndHour === 24) {
-    end.setHours(0, 0, 0, 0);
-    // If startsAt and endsAt point to the same day, adding 1 day reaches 00:00:00 of the following day
-    if (end.getDate() === start.getDate()) {
-      end.setDate(end.getDate() + 1);
-    }
-  } else {
-    end.setHours(effectiveEndHour, 0, 0, 0);
+  const end = new Date(range.endsAt);
+  if (!(range.startsAt instanceof Date) || !(range.endsAt instanceof Date) ||
+      !Number.isFinite(start.getTime()) || !Number.isFinite(end.getTime()) || end <= start) {
+    throw new RangeError('Date ranges require valid startsAt and endsAt Dates with endsAt after startsAt.');
   }
-
-  const hoursCount = Math.max(1, effectiveEndHour - effectiveStartHour);
-
-  return {
-    start,
-    end,
-    startHour: effectiveStartHour,
-    endHour: effectiveEndHour,
-    hoursCount,
-  };
+  return { start, end };
 }
 
-/**
- * Groups consecutive GridDateRanges into continuous date blocks.
- * If range B starts exactly when range A ends (e.g. 24:00 -> 00:00), they form one continuous group.
- * If there is a gap (e.g. ends at 17:00 and next starts at 09:00), a new group is created.
- */
-export function groupContinuousDateRanges(
-  ranges: GridDateRange[],
-  defaultStartHour = 8,
-  defaultEndHour = 24,
-  timeSlotHeight = 48
-): ContinuousDateGroup[] {
-  if (ranges.length === 0) return [];
+/** Builds partial/full hour rows using elapsed time, including DST transitions. */
+export function generateTimeRows(start: Date, end: Date, timeSlotHeight = 48) {
+  const rows: import('./types').GridTimeRow[] = [];
+  for (let ms = start.getTime(); ms < end.getTime();) {
+    const date = new Date(ms);
+    const untilHour = 3600000 - (date.getMinutes() * 60000 + date.getSeconds() * 1000 + date.getMilliseconds());
+    const next = Math.min(end.getTime(), ms + untilHour);
+    rows.push({ startsAt: date, endsAt: new Date(next), heightPx: (next - ms) / 3600000 * timeSlotHeight });
+    ms = next;
+  }
+  return rows;
+}
 
+/** Exact windows are sorted, split at local midnight, and joined only when adjacent. */
+export function groupContinuousDateRanges(ranges: GridDateRange[], timeSlotHeight = 48): ContinuousDateGroup[] {
+  if (!Number.isFinite(timeSlotHeight) || timeSlotHeight <= 0) throw new RangeError('timeSlotHeight must be positive.');
+  const sorted = ranges.map(range => ({ range, ...getEffectiveRangeBounds(range) }))
+    .sort((a, b) => a.start.getTime() - b.start.getTime());
   const groups: ContinuousDateGroup[] = [];
-  let currentGroupRanges: ContinuousDateRangeItem[] = [];
-  let currentGroupStart: Date | null = null;
-  let currentGroupEnd: Date | null = null;
-  let accumulatedMinutes = 0;
-  let accumulatedPx = 0;
-
-  for (let i = 0; i < ranges.length; i++) {
-    const r = ranges[i];
-    const bounds = getEffectiveRangeBounds(r, defaultStartHour, defaultEndHour);
-    const displayHours = generateDisplayHours(bounds.startHour, bounds.endHour);
-    const dateStr = formatDateToYYYYMMDD(bounds.start);
-    const rangeMinutes = (bounds.end.getTime() - bounds.start.getTime()) / (1000 * 60);
-    const rangeHeightPx = displayHours.length * timeSlotHeight;
-
-    const isContinuousWithPrev =
-      currentGroupEnd !== null &&
-      Math.abs(bounds.start.getTime() - currentGroupEnd.getTime()) <= 1000;
-
-    if (!isContinuousWithPrev && currentGroupRanges.length > 0 && currentGroupStart && currentGroupEnd) {
-      // Finalize previous continuous group
-      groups.push({
-        id: `group-${groups.length}-${formatDateToYYYYMMDD(currentGroupStart)}`,
-        ranges: currentGroupRanges,
-        start: currentGroupStart,
-        end: currentGroupEnd,
-        totalMinutes: accumulatedMinutes,
-        totalHeightPx: accumulatedPx,
-        isFirstGroup: groups.length === 0,
-      });
-
-      // Reset accumulators for next group
-      currentGroupRanges = [];
-      currentGroupStart = null;
-      currentGroupEnd = null;
-      accumulatedMinutes = 0;
-      accumulatedPx = 0;
+  let previousEnd = -Infinity;
+  for (const { range, start, end } of sorted) {
+    if (start.getTime() < previousEnd) throw new RangeError('Date ranges must not overlap.');
+    previousEnd = end.getTime();
+    for (let ms = start.getTime(); ms < end.getTime();) {
+      const sliceStart = new Date(ms);
+      const midnight = new Date(ms);
+      midnight.setHours(24, 0, 0, 0);
+      const sliceEnd = new Date(Math.min(end.getTime(), midnight.getTime()));
+      let group = groups[groups.length - 1];
+      if (!group || group.end.getTime() !== ms) {
+        group = { id: `group-${groups.length}-${ms}`, ranges: [], start: sliceStart, end: sliceEnd,
+          totalMinutes: 0, totalHeightPx: 0, isFirstGroup: groups.length === 0 };
+        groups.push(group);
+      }
+      const minutes = (sliceEnd.getTime() - ms) / 60000;
+      const heightPx = minutes / 60 * timeSlotHeight;
+      group.ranges.push({ range: { ...range, startsAt: sliceStart, endsAt: sliceEnd },
+        start: sliceStart, end: sliceEnd, rows: generateTimeRows(sliceStart, sliceEnd, timeSlotHeight),
+        dateStr: formatDateToYYYYMMDD(sliceStart), offsetMinutesFromGroupStart: group.totalMinutes,
+        offsetPxFromGroupStart: group.totalHeightPx, heightPx });
+      group.end = sliceEnd;
+      group.totalMinutes += minutes;
+      group.totalHeightPx += heightPx;
+      ms = sliceEnd.getTime();
     }
-
-    if (!currentGroupStart) {
-      currentGroupStart = bounds.start;
-    }
-    currentGroupEnd = bounds.end;
-
-    currentGroupRanges.push({
-      range: r,
-      start: bounds.start,
-      end: bounds.end,
-      startHour: bounds.startHour,
-      endHour: bounds.endHour,
-      displayHours,
-      dateStr,
-      offsetMinutesFromGroupStart: accumulatedMinutes,
-      offsetPxFromGroupStart: accumulatedPx,
-      heightPx: rangeHeightPx,
-    });
-
-    accumulatedMinutes += rangeMinutes;
-    accumulatedPx += rangeHeightPx;
   }
-
-  if (currentGroupRanges.length > 0 && currentGroupStart && currentGroupEnd) {
-    groups.push({
-      id: `group-${groups.length}-${formatDateToYYYYMMDD(currentGroupStart)}`,
-      ranges: currentGroupRanges,
-      start: currentGroupStart,
-      end: currentGroupEnd,
-      totalMinutes: accumulatedMinutes,
-      totalHeightPx: accumulatedPx,
-      isFirstGroup: groups.length === 0,
-    });
-  }
-
   return groups;
 }
 

@@ -21,8 +21,6 @@ export const ResourceCalendar = <
   onGridClick,
   onEventClick,
   renderEvent,
-  startHour = 8,
-  endHour = 24,
   timeSlotHeight = 48,
   timeColumnWidth = 80,
   resourceColumnWidth = 180,
@@ -38,46 +36,28 @@ export const ResourceCalendar = <
 
   // Compute effective date ranges (either from dateRanges prop or generated from startsAt/endsAt)
   const computedRanges = useMemo<GridDateRange[]>(() => {
-    if (dateRanges && dateRanges.length > 0) {
+    if (dateRanges !== undefined) {
       return dateRanges;
     }
 
-    if (startsAt && endsAt) {
-      const ranges: GridDateRange[] = [];
-      const current = new Date(startsAt);
-      current.setHours(0, 0, 0, 0);
-
-      const targetEnd = new Date(endsAt);
-      targetEnd.setHours(23, 59, 59, 999);
-
-      while (current <= targetEnd) {
-        const dayStart = new Date(current);
-        const dayEnd = new Date(current);
-        dayEnd.setHours(23, 59, 59, 999);
-
-        ranges.push({
-          startsAt: dayStart,
-          endsAt: dayEnd,
-        });
-
-        current.setDate(current.getDate() + 1);
-      }
-      return ranges;
+    if (startsAt || endsAt) {
+      if (!startsAt || !endsAt) throw new RangeError('Provide both startsAt and endsAt.');
+      return [{ startsAt, endsAt }];
     }
 
     // Default fallback: today
     const todayStart = new Date();
     todayStart.setHours(0, 0, 0, 0);
     const todayEnd = new Date();
-    todayEnd.setHours(23, 59, 59, 999);
+    todayEnd.setHours(24, 0, 0, 0);
 
     return [{ startsAt: todayStart, endsAt: todayEnd }];
   }, [dateRanges, startsAt, endsAt]);
 
   // Group continuous date ranges
   const continuousGroups = useMemo<ContinuousDateGroup[]>(() => {
-    return groupContinuousDateRanges(computedRanges, startHour, endHour, timeSlotHeight);
-  }, [computedRanges, startHour, endHour, timeSlotHeight]);
+    return groupContinuousDateRanges(computedRanges, timeSlotHeight);
+  }, [computedRanges, timeSlotHeight]);
 
   // Synchronize horizontal scrolling between header tabs and grid body
   const handleBodyScroll = (e: React.UIEvent<HTMLDivElement>) => {
@@ -126,8 +106,6 @@ export const ResourceCalendar = <
               onGridClick={onGridClick}
               onEventClick={onEventClick}
               renderEvent={renderEvent}
-              startHour={startHour}
-              endHour={endHour}
               timeSlotHeight={timeSlotHeight}
               timeColumnWidth={timeColumnWidth}
               resourceColumnWidth={resourceColumnWidth}

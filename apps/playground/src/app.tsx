@@ -42,7 +42,6 @@ export default function App() {
         id: 'range-2023-10-24',
         startsAt: new Date(2023, 9, 24, 0, 0, 0),
         endsAt: new Date(2023, 9, 24, 24, 0, 0),
-        startHour: 0,
         label: 'TUESDAY, OCT 24',
       },
       {
@@ -213,8 +212,6 @@ export default function App() {
           }
           onGridClick={handleGridClick}
           onEventClick={handleEventClick}
-          startHour={8}
-          endHour={24}
           timeSlotHeight={48}
           timeColumnWidth={80}
           resourceColumnWidth={180}

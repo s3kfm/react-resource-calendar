@@ -1,15 +1,15 @@
 import React from 'react';
+import { GridTimeRow } from './types';
+import { formatEventTime } from './grid-utils';
 
 export interface TimeGutterProps {
-  displayHours: string[];
-  timeSlotHeight?: number;
+  rows: GridTimeRow[];
 }
 
 export const TimeGutter: React.FC<TimeGutterProps> = ({
-  displayHours,
-  timeSlotHeight = 48,
+  rows,
 }) => {
-  const totalHeight = displayHours.length * timeSlotHeight;
+  const totalHeight = rows.reduce((sum, row) => sum + row.heightPx, 0);
 
   return (
     <div
@@ -21,19 +21,19 @@ export const TimeGutter: React.FC<TimeGutterProps> = ({
       }}
       className="flex flex-col relative select-none"
     >
-      {displayHours.map((hour, idx) => (
+      {rows.map((row, idx) => (
         <div
-          key={`${hour}-${idx}`}
+          key={`${row.startsAt.getTime()}-${idx}`}
           role="rowheader"
-          aria-label={`Time: ${hour}`}
+          aria-label={`Time: ${formatEventTime(row.startsAt)}`}
           style={{
-            height: `${timeSlotHeight}px`,
+            height: `${row.heightPx}px`,
             borderColor: 'var(--grid-border)',
             color: 'var(--grid-text-secondary)',
           }}
-          className="flex justify-end pr-2 items-center font-mono text-[12px] font-medium border-b opacity-90"
+          className="shrink-0 overflow-hidden flex justify-end pr-2 items-center font-mono text-[12px] font-medium border-b opacity-90"
         >
-          {hour}
+          {formatEventTime(row.startsAt)}
         </div>
       ))}
     </div>

@@ -34,20 +34,22 @@ export interface GridDateRange {
   endsAt: Date;
   label?: string; // Optional custom title (e.g., "MONDAY, OCT 23")
   id?: string;
-  startHour?: number; // Optional custom start hour for this specific date range (e.g. 1 for 01:00 AM)
-  endHour?: number;   // Optional custom end hour for this specific date range (e.g. 24 for 24:00)
 }
 
 /**
  * Metadata for an individual date range slice within a continuous group
  */
+export interface GridTimeRow {
+  startsAt: Date;
+  endsAt: Date;
+  heightPx: number;
+}
+
 export interface ContinuousDateRangeItem {
   range: GridDateRange;
   start: Date;
   end: Date;
-  startHour: number;
-  endHour: number;
-  displayHours: string[];
+  rows: GridTimeRow[];
   dateStr: string;
   offsetMinutesFromGroupStart: number;
   offsetPxFromGroupStart: number;
@@ -145,7 +147,7 @@ export interface ResourceCalendarProps<
   TMeta = Record<string, unknown>
 > {
   /**
-   * Continuous Date Range mode: specify start date and end date
+   * Exact time window: start inclusive, end exclusive. Supply both endpoints.
    */
   startsAt?: Date;
   endsAt?: Date;
@@ -217,15 +219,7 @@ export interface ResourceCalendarProps<
    */
   subHourGrading?: SubHourGradingStyle;
 
-  /**
-   * Start hour of the daily timeline (default: 8 for 08:00)
-   */
-  startHour?: number;
 
-  /**
-   * End hour of the daily timeline (default: 24 for 24:00/midnight)
-   */
-  endHour?: number;
 
   /**
    * Height in pixels per 1-hour time slot (default: 48)

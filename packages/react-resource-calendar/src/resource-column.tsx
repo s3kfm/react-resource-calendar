@@ -1,8 +1,8 @@
 import React from 'react';
-import { ContinuousDateGroup, ContinuousDateRangeItem, GridDateRange, GridEvent, GridResource, GridSlotClickInfo, SubHourGradingStyle } from './types';
+import { ContinuousDateGroup, GridDateRange, GridEvent, GridResource, GridSlotClickInfo, SubHourGradingStyle } from './types';
 import { GridEventCard } from './grid-event-card';
 import { TimeCell } from './time-cell';
-import { computeGridColumnLayout, computeGridContinuousColumnLayout } from './grid-utils';
+import { groupContinuousDateRanges, formatDateToYYYYMMDD, formatEventTime, computeGridContinuousColumnLayout } from './grid-utils';
 
 export interface ResourceColumnProps<
   TData = Record<string, unknown>,
@@ -11,11 +11,8 @@ export interface ResourceColumnProps<
   key?: React.Key;
   group?: ContinuousDateGroup;
   range?: GridDateRange;
-  dateStr?: string;
   resource: GridResource<TMeta>;
   events: GridEvent<TData>[];
-  displayHours?: string[];
-  startHour?: number;
   timeSlotHeight?: number;
   intervalMinutes?: number;
   subHourGrading?: SubHourGradingStyle;
@@ -32,13 +29,10 @@ export const ResourceColumn = <
   TData = Record<string, unknown>,
   TMeta = Record<string, unknown>
 >({
-  group,
+  group: suppliedGroup,
   range,
-  dateStr,
   resource,
   events,
-  displayHours = [],
-  startHour = 8,
   timeSlotHeight = 48,
   intervalMinutes = 15,
   subHourGrading = 'none',
@@ -47,6 +41,9 @@ export const ResourceColumn = <
   onEventClick,
   renderEvent,
 }: ResourceColumnProps<TData, TMeta>): React.ReactElement => {
+
+  const group = suppliedGroup ?? (range ? groupContinuousDateRanges([range], timeSlotHeight)[0] : undefined);
+  if (!Number.isFinite(intervalMinutes) || intervalMinutes <= 0) throw new RangeError('intervalMinutes must be positive.');
 
   // If group is provided, render continuous layout across all ranges in the group
   if (group) {
@@ -58,14 +55,6 @@ export const ResourceColumn = <
       group.end,
       pxPerMinute
     );
-
-    // Calculate slot steps
-    const slotsPerHour = Math.max(1, Math.floor(60 / intervalMinutes));
-    const slotHeight = timeSlotHeight / slotsPerHour;
-    const minuteSteps: number[] = [];
-    for (let i = 0; i < slotsPerHour; i++) {
-      minuteSteps.push(i * intervalMinutes);
-    }
 
     return (
       <div
@@ -79,51 +68,28 @@ export const ResourceColumn = <
         }}
       >
         {/* Background interval grid cells for each range in this continuous group */}
-        {group.ranges.map((rangeItem: ContinuousDateRangeItem) => (
-          <React.Fragment key={`range-block-${rangeItem.dateStr}`}>
-            {rangeItem.displayHours.map((hour, hourIdx) => {
-              const slotHourNum = rangeItem.startHour + hourIdx;
-
-              return (
-                <React.Fragment key={`${rangeItem.dateStr}-${hour}`}>
-                  {minuteSteps.map((minOffset, stepIdx) => {
-                    const slotTimeString = `${String(slotHourNum).padStart(2, '0')}:${String(minOffset).padStart(2, '0')}`;
-                    const minutesFromGroupStart =
-                      rangeItem.offsetMinutesFromGroupStart + hourIdx * 60 + minOffset;
-                    const isHourEnd = stepIdx === slotsPerHour - 1;
-
-                    const handleSlotClick = () => {
-                      if (onGridClick) {
-                        const slotDate = new Date(rangeItem.start);
-                        slotDate.setHours(slotHourNum, minOffset, 0, 0);
-                        onGridClick({
-                          date: slotDate,
-                          dateStr: rangeItem.dateStr,
-                          resourceId: resource.id,
-                          time: slotTimeString,
-                          minutesFromStart: minutesFromGroupStart,
-                        });
-                      }
-                    };
-
-                    return (
-                      <TimeCell
-                        key={`${rangeItem.dateStr}-${slotHourNum}-${minOffset}`}
-                        slotTimeString={slotTimeString}
-                        minuteOffset={minOffset}
-                        isHourEnd={isHourEnd}
-                        resourceLabel={resource.label}
-                        height={slotHeight}
-                        subHourGrading={subHourGrading}
-                        onClick={handleSlotClick}
-                      />
-                    );
-                  })}
-                </React.Fragment>
-              );
-            })}
-          </React.Fragment>
-        ))}
+        {group.ranges.flatMap(rangeItem => rangeItem.rows.flatMap(row => {
+          const cells: React.ReactNode[] = [];
+          for (let ms = row.startsAt.getTime(); ms < row.endsAt.getTime();) {
+            const next = Math.min(row.endsAt.getTime(), ms + intervalMinutes * 60000);
+            const date = new Date(ms);
+            const slotTimeString = formatEventTime(date);
+            cells.push(<TimeCell
+              key={ms}
+              slotTimeString={slotTimeString}
+              minuteOffset={date.getMinutes()}
+              isHourEnd={new Date(next).getMinutes() === 0}
+              resourceLabel={resource.label}
+              height={(next - ms) / 60000 * pxPerMinute}
+              subHourGrading={subHourGrading}
+              onClick={() => onGridClick?.({ date: new Date(date), dateStr: formatDateToYYYYMMDD(date),
+                resourceId: resource.id, time: slotTimeString,
+                minutesFromStart: (date.getTime() - group.start.getTime()) / 60000 })}
+            />);
+            ms = next;
+          }
+          return cells;
+        }))}
 
         {/* Render Layout Event Cards spanning across continuous days */}
         {continuousLayoutItems.map(({ event, layout }) => (
@@ -139,89 +105,5 @@ export const ResourceColumn = <
     );
   }
 
-  // Fallback single range rendering
-  const effectiveDateStr = dateStr || (range ? range.startsAt.toISOString().slice(0, 10) : '');
-  const totalHeight = displayHours.length * timeSlotHeight;
-  const effectiveEndHour = range?.endHour !== undefined ? range.endHour : startHour + displayHours.length;
-  const columnLayoutItems = computeGridColumnLayout(
-    events,
-    effectiveDateStr,
-    resource.id,
-    startHour,
-    effectiveEndHour,
-    pxPerMinute
-  );
-
-  const slotsPerHour = Math.max(1, Math.floor(60 / intervalMinutes));
-  const slotHeight = timeSlotHeight / slotsPerHour;
-  const minuteSteps: number[] = [];
-  for (let i = 0; i < slotsPerHour; i++) {
-    minuteSteps.push(i * intervalMinutes);
-  }
-
-  return (
-    <div
-      id={`grid-col-${effectiveDateStr}-${resource.id}`}
-      role="region"
-      aria-label={`Timeline column for ${resource.label}`}
-      className="relative group/col"
-      style={{
-        height: `${totalHeight}px`,
-        backgroundColor: 'var(--grid-surface-card)',
-      }}
-    >
-      {/* Background interval grid cells */}
-      {displayHours.map((hour, hourIdx) => {
-        const slotHourNum = startHour + hourIdx;
-
-        return (
-          <React.Fragment key={hour}>
-            {minuteSteps.map((minOffset, stepIdx) => {
-              const slotTimeString = `${String(slotHourNum).padStart(2, '0')}:${String(minOffset).padStart(2, '0')}`;
-              const minutesFromStart = hourIdx * 60 + minOffset;
-              const isHourEnd = stepIdx === slotsPerHour - 1;
-
-              const handleSlotClick = () => {
-                if (onGridClick && range) {
-                  const slotDate = new Date(range.startsAt);
-                  slotDate.setHours(slotHourNum, minOffset, 0, 0);
-                  onGridClick({
-                    date: slotDate,
-                    dateStr: effectiveDateStr,
-                    resourceId: resource.id,
-                    time: slotTimeString,
-                    minutesFromStart,
-                  });
-                }
-              };
-
-              return (
-                <TimeCell
-                  key={`${slotHourNum}-${minOffset}`}
-                  slotTimeString={slotTimeString}
-                  minuteOffset={minOffset}
-                  isHourEnd={isHourEnd}
-                  resourceLabel={resource.label}
-                  height={slotHeight}
-                  subHourGrading={subHourGrading}
-                  onClick={handleSlotClick}
-                />
-              );
-            })}
-          </React.Fragment>
-        );
-      })}
-
-      {/* Render Layout Event Cards */}
-      {columnLayoutItems.map(({ event, layout }) => (
-        <GridEventCard
-          key={event.id}
-          event={event}
-          layout={layout}
-          onClick={onEventClick}
-          renderEvent={renderEvent}
-        />
-      ))}
-    </div>
-  );
+  return <></>;
 };

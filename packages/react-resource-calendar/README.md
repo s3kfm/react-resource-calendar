@@ -57,8 +57,6 @@ export function Schedule() {
         endsAt={new Date(2026, 8, 5)}
         resources={resources}
         events={events}
-        startHour={8}
-        endHour={18}
         intervalMinutes={15}
         onGridClick={handleEmptySlot}
         onEventClick={(event) => console.log('Selected', event)}
@@ -129,7 +127,7 @@ Use `GridEvent<TData>` and its `data` property to retain your domain model in ca
 
 ## Date ranges
 
-For ordinary full-day ranges, pass JavaScript `Date` objects to `startsAt` and `endsAt`.
+Pass JavaScript `Date` objects to `startsAt` and `endsAt` for one exact time window. The start is inclusive and the end is exclusive; a full day runs from midnight to midnight the following day. Both endpoints are required when either is provided. With neither, the calendar displays today.
 
 For working hours, gaps, or explicit continuous boundaries, use `dateRanges`:
 
@@ -154,7 +152,11 @@ For working hours, gaps, or explicit continuous boundaries, use `dateRanges`:
 />
 ```
 
-Ranges whose end and start timestamps meet exactly render as one continuous timeline. A time gap creates a separate date section.
+Ranges are sorted chronologically. Exactly adjacent windows render as one continuous timeline; any gap creates a separate section. Overlapping, invalid, or non-positive windows throw `RangeError`. An explicit empty `dateRanges` array displays no windows.
+
+Minutes and seconds are preserved. For example, `08:30`–`17:30` produces partial-hour rows at both ends. Overnight and multi-day windows split at local midnight for date headers, while positions and heights follow elapsed time (including daylight-saving transitions).
+
+**Migration:** `startHour` and `endHour` were removed from the calendar and date-range props. Specify those times directly in each range’s timestamps. Top-level `startsAt`/`endsAt` now describe one exact window rather than an inclusive list of whole dates. Use `dateRanges` for separate daily working hours.
 
 ## Important props
 
@@ -162,9 +164,8 @@ Ranges whose end and start timestamps meet exactly render as one continuous time
 | --- | --- | --- | --- |
 | `resources` | `GridResource[]` | required | Resource columns |
 | `events` | `GridEvent[]` | required | Events to display |
-| `startsAt` / `endsAt` | `Date` | today | Inclusive date span |
+| `startsAt` / `endsAt` | `Date` | today | Exact time window, end exclusive |
 | `dateRanges` | `GridDateRange[]` | — | Explicit date/time windows |
-| `startHour` / `endHour` | `number` | `8` / `24` | Default daily bounds |
 | `intervalMinutes` | `number` | `15` | Clickable sub-slot duration |
 | `subHourGrading` | `none \| dashed \| solid \| dotted` | `none` | Sub-hour divider style |
 | `timeSlotHeight` | `number` | `48` | Pixels per hour |
