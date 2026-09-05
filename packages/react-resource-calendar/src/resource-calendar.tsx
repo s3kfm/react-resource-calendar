@@ -22,7 +22,7 @@ export const ResourceCalendar = <
   resourceColumnWidth = 180,
   intervalMinutes = 15,
   subHourGrading = 'none',
-  timeZoneLabel = 'TIME (EST)',
+  cornerLabel,
   className = '',
   ariaLabel = 'Resource scheduling grid',
   theme,
@@ -77,7 +77,7 @@ export const ResourceCalendar = <
         onResourceHeaderClick={onResourceHeaderClick}
         timeColumnWidth={timeColumnWidth}
         resourceColumnWidth={resourceColumnWidth}
-        timeZoneLabel={timeZoneLabel}
+        cornerLabel={cornerLabel}
       />
 
       {/* Main Grid Scroll Area */}

@@ -211,8 +211,7 @@ export default function App() {
           timeSlotHeight={48}
           timeColumnWidth={80}
           resourceColumnWidth={180}
-          timeZoneLabel="TIME (EST)"
-        />
+          />
       </main>
 
       {/* Data & Interaction Modals Layer */}

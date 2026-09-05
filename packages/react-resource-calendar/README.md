@@ -193,7 +193,7 @@ Minutes and seconds are preserved. For example, `08:30`–`17:30` produces parti
 | `timeSlotHeight` | `number` | `48` | Pixels per hour |
 | `timeColumnWidth` | `number` | `80` | Time-gutter width |
 | `resourceColumnWidth` | `number` | `180` | Minimum resource width |
-| `timeZoneLabel` | `string` | `TIME (EST)` | Header label; it does not convert time |
+| `cornerLabel` | `string` | — | Label in the top-left corner cell; hidden when omitted |
 | `theme` | `string` | default CSS palette | CSS theme name (`data-grid-theme`) |
 | `className` | `string` | empty | Extra root classes |
 | `ariaLabel` | `string` | `Resource scheduling grid` | Accessible region name |
@@ -307,7 +307,7 @@ The main entry point exports the root component, internal building blocks, layou
 - The component is client-side React and requires DOM APIs.
 - It does not fetch, mutate, or persist data.
 - Dates use the browser's local timezone; include an explicit offset in ISO timestamps when needed.
-- `timeZoneLabel` changes the displayed label only.
+- `cornerLabel` changes the displayed corner label only.
 - Give the parent element a usable height because the grid uses `height: 100%` internally.
 
 ## License

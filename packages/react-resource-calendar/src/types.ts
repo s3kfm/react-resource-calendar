@@ -202,9 +202,9 @@ export interface ResourceCalendarProps<
   resourceColumnWidth?: number;
 
   /**
-   * Timezone display label (default: "TIME (EST)")
+   * Label displayed in the top-left corner cell of the grid. When omitted, the corner cell is not rendered.
    */
-  timeZoneLabel?: string;
+  cornerLabel?: string;
 
   /**
    * Optional accessible label for the grid region

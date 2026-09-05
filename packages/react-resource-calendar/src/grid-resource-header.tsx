@@ -7,7 +7,7 @@ interface GridResourceHeaderProps<TMeta = Record<string, unknown>> {
   onResourceHeaderClick?: (resource: GridResource<TMeta>, event: React.MouseEvent | React.KeyboardEvent) => void;
   timeColumnWidth?: number;
   resourceColumnWidth?: number;
-  timeZoneLabel?: string;
+  cornerLabel?: string;
   scrollRef?: React.RefObject<HTMLDivElement | null>;
 }
 
@@ -16,7 +16,7 @@ export const GridResourceHeader = <TMeta = Record<string, unknown>>({
   onResourceHeaderClick,
   timeColumnWidth = 80,
   resourceColumnWidth = 180,
-  timeZoneLabel = 'TIME (EST)',
+  cornerLabel,
   scrollRef,
 }: GridResourceHeaderProps<TMeta>): React.ReactElement => {
   return (
@@ -31,10 +31,10 @@ export const GridResourceHeader = <TMeta = Record<string, unknown>>({
       id="grid-resource-header-tabs"
     >
       <div role="row" className="flex items-stretch min-w-full">
-        {/* Sticky/Fixed Time Column Label */}
+        {/* Sticky/Fixed Time Column corner cell — always reserves timeColumnWidth for alignment */}
         <div
           role="columnheader"
-          aria-label={`Time column timezone: ${timeZoneLabel}`}
+          aria-label={cornerLabel ? `Corner label: ${cornerLabel}` : 'Time column spacer'}
           style={{
             width: `${timeColumnWidth}px`,
             minWidth: `${timeColumnWidth}px`,
@@ -44,9 +44,11 @@ export const GridResourceHeader = <TMeta = Record<string, unknown>>({
           }}
           className="shrink-0 flex items-end justify-end border-r pb-2 pr-2"
         >
-          <span className="font-bold text-[11px] tracking-wider uppercase opacity-90">
-            {timeZoneLabel}
-          </span>
+          {cornerLabel ? (
+            <span className="font-bold text-[11px] tracking-wider uppercase opacity-90">
+              {cornerLabel}
+            </span>
+          ) : null}
         </div>
 
         {/* Resource Column Headers */}
