@@ -13,10 +13,6 @@ export const ResourceCalendar = <
   dateRanges,
   resources,
   onResourceHeaderClick,
-  headerAction,
-  headerActionLabel,
-  onHeaderActionClick,
-  renderHeaderAction,
   events,
   onGridClick,
   onEventClick,
@@ -79,10 +75,6 @@ export const ResourceCalendar = <
         scrollRef={headerTabsRef}
         resources={resources}
         onResourceHeaderClick={onResourceHeaderClick}
-        headerAction={headerAction}
-        headerActionLabel={headerActionLabel}
-        onHeaderActionClick={onHeaderActionClick}
-        renderHeaderAction={renderHeaderAction}
         timeColumnWidth={timeColumnWidth}
         resourceColumnWidth={resourceColumnWidth}
         timeZoneLabel={timeZoneLabel}

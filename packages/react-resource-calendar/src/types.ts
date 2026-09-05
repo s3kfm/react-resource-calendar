@@ -157,27 +157,6 @@ export interface ResourceCalendarProps<
   onResourceHeaderClick?: (resource: GridResource<TMeta>, event: React.MouseEvent | React.KeyboardEvent) => void;
 
   /**
-   * Custom JSX element rendered on the right side of the resource header row.
-   * If not provided (and no onHeaderActionClick is provided), nothing is rendered.
-   */
-  headerAction?: React.ReactNode;
-
-  /**
-   * Label or custom JSX for the header action button.
-   */
-  headerActionLabel?: React.ReactNode;
-
-  /**
-   * Callback fired when the header action slot is clicked or activated.
-   */
-  onHeaderActionClick?: (event: React.MouseEvent | React.KeyboardEvent) => void;
-
-  /**
-   * Custom render function for the header action slot.
-   */
-  renderHeaderAction?: (resources: GridResource<TMeta>[]) => React.ReactNode;
-
-  /**
    * Scheduled events to display in the grid
    */
   events: GridEvent<TData>[];

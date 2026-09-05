@@ -108,8 +108,8 @@ export default function App() {
     setIsResourceManageOpen(true);
   };
 
-  // Header action slot click handler
-  const handleHeaderActionClick = () => {
+  // Manage resources toolbar button click handler
+  const handleManageResourcesClick = () => {
     setSelectedManageResourceId(null);
     setIsResourceManageOpen(true);
   };
@@ -167,6 +167,37 @@ export default function App() {
 
   return (
     <div className="bg-[#f7f9fb] text-[#191c1e] h-screen flex flex-col font-sans overflow-hidden select-none">
+      {/* Toolbar above the calendar */}
+      <div className="shrink-0 flex items-center border-b border-[#e0e3e5] bg-white">
+        {/* Theme Switcher dropdown */}
+        <div className="flex items-center gap-1 px-2.5 py-1.5 text-xs text-[#555869] border-r border-[#e0e3e5]/60">
+          <Palette className="w-3.5 h-3.5 text-[#555869]" />
+          <select
+            id="theme-select"
+            aria-label="Select grid theme preset"
+            value={selectedTheme}
+            onChange={(e) => setSelectedTheme(e.target.value)}
+            className="bg-transparent text-xs font-semibold text-[#191c1e] cursor-pointer focus:outline-none"
+          >
+            <option value="default">Default</option>
+            <option value="warm">Warm Neutral</option>
+            <option value="clinical">Clinical Clean</option>
+            <option value="dark">Dark Charcoal</option>
+          </select>
+        </div>
+
+        {/* Manage Columns Button */}
+        <div
+          id="grid-btn-manage-resources"
+          onClick={handleManageResourcesClick}
+          className="flex items-center justify-center gap-1.5 text-[#555869] hover:text-[#004ac6] hover:bg-[#eceef0] cursor-pointer text-xs font-semibold py-1.5 px-3 transition-colors select-none"
+          title="Manage and delete resources"
+        >
+          <Settings2 className="w-3.5 h-3.5" />
+          <span>Columns</span>
+        </div>
+      </div>
+
       {/* React Resource Calendar (Library Component) */}
       <main className="flex-1 overflow-hidden flex flex-col bg-[#f7f9fb] relative">
         <ResourceCalendar
@@ -175,37 +206,6 @@ export default function App() {
           resources={gridResources}
           events={gridEvents}
           onResourceHeaderClick={handleResourceHeaderClick}
-          headerAction={
-            <div className="h-full flex items-center border-l border-[#e0e3e5]">
-              {/* Theme Switcher dropdown */}
-              <div className="flex items-center gap-1 px-2.5 py-1 text-xs text-[#555869] border-r border-[#e0e3e5]/60">
-                <Palette className="w-3.5 h-3.5 text-[#555869]" />
-                <select
-                  id="theme-select"
-                  aria-label="Select grid theme preset"
-                  value={selectedTheme}
-                  onChange={(e) => setSelectedTheme(e.target.value)}
-                  className="bg-transparent text-xs font-semibold text-[#191c1e] cursor-pointer focus:outline-none"
-                >
-                  <option value="default">Default</option>
-                  <option value="warm">Warm Neutral</option>
-                  <option value="clinical">Clinical Clean</option>
-                  <option value="dark">Dark Charcoal</option>
-                </select>
-              </div>
-
-              {/* Manage Columns Button */}
-              <div
-                id="grid-btn-manage-resources"
-                onClick={handleHeaderActionClick}
-                className="h-full flex items-center justify-center gap-1.5 text-[#555869] hover:text-[#004ac6] hover:bg-[#eceef0] cursor-pointer text-xs font-semibold py-1 px-3 transition-colors select-none"
-                title="Manage and delete resources"
-              >
-                <Settings2 className="w-3.5 h-3.5" />
-                <span>Columns</span>
-              </div>
-            </div>
-          }
           onGridClick={handleGridClick}
           onEventClick={handleEventClick}
           timeSlotHeight={48}

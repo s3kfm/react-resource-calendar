@@ -207,8 +207,6 @@ Minutes and seconds are preserved. For example, `08:30`–`17:30` produces parti
   onGridClick={(slot) => openCreateDialog(slot)}
   onEventClick={(event) => openEventDialog(event)}
   onResourceHeaderClick={(resource) => openResourceDialog(resource)}
-  headerActionLabel="Add resource"
-  onHeaderActionClick={() => openResourceDialog()}
 />
 ```
 
