@@ -1,0 +1,59 @@
+{
+  "name": "react-resource-calendar",
+  "version": "0.1.0",
+  "description": "A resource calendar component for React.",
+  "type": "module",
+  "sideEffects": [
+    "**/*.css"
+  ],
+  "files": [
+    "dist",
+    "readme.md",
+    "license"
+  ],
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./styles.css": "./dist/styles.css"
+  },
+  "scripts": {
+    "build": "vite build",
+    "typecheck": "tsc --noEmit",
+    "clean": "rimraf dist",
+    "prepack": "pnpm build"
+  },
+  "keywords": [
+    "react",
+    "scheduler",
+    "calendar",
+    "resource-grid",
+    "typescript",
+    "tailwindcss"
+  ],
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
+  "peerDependencies": {
+    "react": ">=18 <20"
+  },
+  "dependencies": {
+    "lucide-react": "^0.546.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.1.14",
+    "@types/react": "^19.0.12",
+    "@vitejs/plugin-react": "^5.0.4",
+    "rimraf": "^6.0.1",
+    "tailwindcss": "^4.1.14",
+    "typescript": "~5.8.2",
+    "vite": "^6.2.3",
+    "vite-plugin-dts": "^4.5.4"
+  }
+}

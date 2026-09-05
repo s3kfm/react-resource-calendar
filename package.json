@@ -1,0 +1,17 @@
+{
+  "name": "react-resource-calendar-workspace",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@10.15.1",
+  "scripts": {
+    "dev": "pnpm --filter react-resource-calendar-playground dev",
+    "build": "pnpm --filter react-resource-calendar build && pnpm --filter react-resource-calendar-playground build",
+    "typecheck": "pnpm --filter react-resource-calendar typecheck && pnpm --filter react-resource-calendar-playground typecheck",
+    "check": "pnpm typecheck && pnpm build",
+    "clean": "pnpm -r clean",
+    "pack:library": "pnpm --filter react-resource-calendar pack"
+  },
+  "devDependencies": {
+    "typescript": "~5.8.2"
+  }
+}
